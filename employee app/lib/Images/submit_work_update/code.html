@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Work Update Submission | FieldCore</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#291800",
+                    "primary-fixed": "#ffddb3",
+                    "on-surface-variant": "#524533",
+                    "on-background": "#211a11",
+                    "surface-container": "#fbebdc",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#e6d8c9",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#633f00",
+                    "secondary-container": "#ffcf90",
+                    "surface-container-low": "#fff1e4",
+                    "on-primary-container": "#613e00",
+                    "on-secondary-fixed-variant": "#60400d",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#efe0d1",
+                    "on-tertiary-fixed": "#001e2c",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#efe0d1",
+                    "secondary": "#7b5824",
+                    "inverse-surface": "#372f25",
+                    "surface": "#fff8f4",
+                    "surface-bright": "#fff8f4",
+                    "tertiary": "#00658a",
+                    "tertiary-fixed-dim": "#7cd0ff",
+                    "on-tertiary-fixed-variant": "#004c69",
+                    "on-surface": "#211a11",
+                    "surface-tint": "#825500",
+                    "primary-fixed-dim": "#ffb951",
+                    "on-secondary-container": "#795723",
+                    "on-primary-fixed": "#291800",
+                    "inverse-on-surface": "#fdeedf",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#ffb951",
+                    "tertiary-fixed": "#c4e7ff",
+                    "tertiary-container": "#29c0ff",
+                    "primary": "#825500",
+                    "background": "#fff8f4",
+                    "error-container": "#ffdad6",
+                    "primary-container": "#f4a300",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#edbf80",
+                    "outline": "#857461",
+                    "secondary-fixed": "#ffddb3",
+                    "outline-variant": "#d7c3ad",
+                    "surface-container-high": "#f5e6d7",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "container-margin": "24px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "headline-md-mobile": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-sm": ["Hanken Grotesk"],
+                    "label-md": ["JetBrains Mono"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "headline-md-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #F5F5F5; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #F4A300;
+            border: 4px solid #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .progress-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #F4A300;
+            border: 4px solid #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d7c3ad; border-radius: 10px; }
+    </style>
+</head>
+<body class="text-on-background min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-40 bg-surface-container-lowest flex justify-between items-center w-full px-margin-mobile h-16 border-b border-outline-variant shadow-sm">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-on-surface p-2 hover:bg-surface-container-low rounded-full transition-colors active:opacity-80">arrow_back</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary-container">FieldCore</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined text-on-surface p-2 hover:bg-surface-container-low rounded-full transition-colors active:opacity-80">search</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcgLSJra4cRcgSYnNObeUxqXLHWpTcqTXLIzircnDMFYcEZxSoBO_hyB23iGb7_voSKcspTnlr6L93bv-q7Gdnbh33BhZ5FKwxrsU1R-NLvu_GFT-4P6bif5E63_Cf55AfIGYd--AMXz4CdP2kA_QErQ1wTdM1ggzWOeuBzP1WHRChuLmamyI38CTrupA127MgzMK4HG43hIryKELg1fkG51D9x-24XiGDwf3o3w-1h5-d_onJZ04piTtr5BVfwUIfdDnrOswSQvz5"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-2xl mx-auto px-margin-mobile pt-lg pb-xl">
+<header class="mb-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface">Work Update</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Submit your progress for today's active tasks.</p>
+</header>
+<!-- Form Container -->
+<div class="space-y-6">
+<!-- Task Selection -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider ml-1" for="task-select">Select Task</label>
+<div class="relative group">
+<select class="w-full h-14 pl-4 pr-12 bg-surface-container-lowest border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded-lg appearance-none font-body-lg text-body-lg transition-all" id="task-select">
+<option disabled="" selected="" value="">Choose an active task...</option>
+<option value="site-survey">Site Survey - Terminal A</option>
+<option value="equipment-install">Equipment Installation - Sector 4</option>
+<option value="safety-audit">Weekly Safety Audit</option>
+<option value="maintenance">Preventative Maintenance - HVAC</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant group-focus-within:text-primary-container transition-colors">expand_more</span>
+</div>
+</div>
+<!-- Update Title -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider ml-1" for="update-title">Update Title</label>
+<input class="w-full h-14 px-4 bg-surface-container-lowest border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded-lg font-body-lg text-body-lg transition-all outline-none" id="update-title" placeholder="e.g., Initial cabling completed" type="text"/>
+</div>
+<!-- Progress Slider Section -->
+<div class="bg-surface-container-lowest p-6 rounded-xl space-y-4 border border-outline-variant shadow-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Progress Percentage</label>
+<span class="bg-primary-container text-on-primary font-headline-sm text-headline-sm px-3 py-1 rounded-lg" id="progress-val">45%</span>
+</div>
+<input class="progress-slider w-full h-2 bg-surface-container-high rounded-full appearance-none cursor-pointer" id="progress-slider" max="100" min="0" type="range" value="45"/>
+<div class="flex justify-between text-on-surface-variant font-label-md text-label-md px-1">
+<span>Not Started</span>
+<span>Completed</span>
+</div>
+</div>
+<!-- Work Notes Area -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider ml-1" for="work-notes">Detailed Notes</label>
+<textarea class="custom-scrollbar w-full p-4 bg-surface-container-lowest border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded-xl font-body-md text-body-md transition-all outline-none resize-none" id="work-notes" placeholder="Describe the work performed, any blockers encountered, or specific details for the ops manager..." rows="6"></textarea>
+</div>
+<!-- File Upload Area -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider ml-1">Evidence &amp; Documents</label>
+<div class="group relative flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-xl p-8 bg-surface-container-lowest hover:border-primary-container hover:bg-surface-container-low transition-all cursor-pointer overflow-hidden">
+<div class="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-primary-container"></div>
+<span class="material-symbols-outlined text-primary-container mb-2" style="font-size: 40px;">cloud_upload</span>
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">Tap to upload photos or docs</p>
+<p class="font-label-md text-label-md text-on-surface-variant">JPG, PNG, PDF (Max 25MB)</p>
+<input class="absolute inset-0 opacity-0 cursor-pointer" multiple="" type="file"/>
+</div>
+<!-- Mock Uploaded Item -->
+<div class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-lg border border-outline-variant mt-2 shadow-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined">image</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-medium text-on-surface truncate">site_progress_img_01.jpg</p>
+<p class="font-label-md text-label-md text-on-surface-variant">1.2 MB • Uploaded</p>
+</div>
+<button class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors">delete</button>
+</div>
+</div>
+<!-- Submit Action -->
+<div class="pt-4">
+<button class="w-full h-16 bg-primary-container text-on-primary font-headline-sm text-headline-sm rounded-xl shadow-lg shadow-primary-container/10 flex items-center justify-center gap-3 hover:opacity-90 active:scale-[0.99] transition-all" id="submit-btn">
+<span>Submit Work Update</span>
+<span class="material-symbols-outlined">send</span>
+</button>
+<p class="text-center mt-4 font-label-md text-label-md text-on-surface-variant px-4">
+                    Submitting this update will notify your operations manager and sync with the central database.
+                </p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shell) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-[0_-2px_10px_rgba(0,0,0,0.05)] rounded-t-xl border-t border-outline-variant">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md mt-1">Home</span>
+</button>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-lg px-4 py-1 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment_turned_in</span>
+<span class="font-label-md text-label-md mt-1">Tasks</span>
+</div>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md mt-1">Attendance</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md text-label-md mt-1">Performance</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md mt-1">Profile</span>
+</button>
+</nav>
+<script>
+        // Update slider value display
+        const slider = document.getElementById('progress-slider');
+        const display = document.getElementById('progress-val');
+        
+        slider.addEventListener('input', (e) => {
+            display.textContent = `${e.target.value}%`;
+            // Visual dynamic color change for feedback
+            if (e.target.value >= 100) {
+                display.classList.remove('bg-primary-container');
+                display.classList.add('bg-secondary');
+            } else {
+                display.classList.add('bg-primary-container');
+                display.classList.remove('bg-secondary');
+            }
+        });
+
+        // Simple button interaction
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.addEventListener('click', () => {
+            submitBtn.innerHTML = `
+                <span class="animate-spin material-symbols-outlined">sync</span>
+                <span>Processing...</span>
+            `;
+            setTimeout(() => {
+                submitBtn.classList.remove('bg-primary-container');
+                submitBtn.classList.add('bg-secondary');
+                submitBtn.innerHTML = `
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span>Update Submitted!</span>
+                `;
+            }, 1500);
+        });
+
+        // Floating label micro-interaction focus
+        const inputs = document.querySelectorAll('input[type="text"], select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                const label = input.parentElement.previousElementSibling;
+                if (label && label.tagName === 'LABEL') {
+                    label.classList.add('text-primary-container');
+                    label.classList.remove('text-on-surface-variant');
+                }
+            });
+            input.addEventListener('blur', () => {
+                const label = input.parentElement.previousElementSibling;
+                if (label && label.tagName === 'LABEL') {
+                    label.classList.remove('text-primary-container');
+                    label.classList.add('text-on-surface-variant');
+                }
+            });
+        });
+    </script>
+</body></html>

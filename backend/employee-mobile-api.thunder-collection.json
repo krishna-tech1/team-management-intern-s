@@ -1,0 +1,473 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "Employee Mobile Backend",
+  "collectionId": "employee-mobile-backend-v1",
+  "dateExported": "2026-06-25",
+  "version": "1.1",
+  "folders": [
+    { "id": "f-auth", "name": "Auth" },
+    { "id": "f-dashboard", "name": "Dashboard" },
+    { "id": "f-tasks", "name": "Tasks" },
+    { "id": "f-work-updates", "name": "Work Updates" },
+    { "id": "f-performance", "name": "Performance" },
+    { "id": "f-incentives", "name": "Incentives" },
+    { "id": "f-attendance", "name": "Attendance" },
+    { "id": "f-profile", "name": "Profile" },
+    { "id": "f-notifications", "name": "Notifications" },
+    { "id": "f-documents", "name": "Documents" }
+  ],
+  "requests": [
+    {
+      "id": "req-01",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-auth",
+      "name": "Employee Login",
+      "url": "{{baseUrl}}/api/auth/login",
+      "method": "POST",
+      "sortNum": 1,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.token", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-02",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-dashboard",
+      "name": "Get Employee Dashboard",
+      "url": "{{baseUrl}}/api/employee/dashboard",
+      "method": "GET",
+      "sortNum": 2,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.performanceScore", "action": "isValue" },
+        { "type": "json-query", "custom": "$.data.assignedTasks", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-03",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Get All Tasks (paginated)",
+      "url": "{{baseUrl}}/api/employee/tasks?page=1&limit=10",
+      "method": "GET",
+      "sortNum": 3,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" }
+      ]
+    },
+    {
+      "id": "req-04",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Get Tasks - Filter by Status",
+      "url": "{{baseUrl}}/api/employee/tasks?status=IN_PROGRESS",
+      "method": "GET",
+      "sortNum": 4,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ]
+    },
+    {
+      "id": "req-05",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Get Tasks - Filter by Priority",
+      "url": "{{baseUrl}}/api/employee/tasks?priority=HIGH",
+      "method": "GET",
+      "sortNum": 5,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ]
+    },
+    {
+      "id": "req-06",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Get Tasks - Search",
+      "url": "{{baseUrl}}/api/employee/tasks?search=GST",
+      "method": "GET",
+      "sortNum": 6,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ]
+    },
+    {
+      "id": "req-07",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Get Task By ID",
+      "url": "{{baseUrl}}/api/employee/tasks/{{taskId}}",
+      "method": "GET",
+      "sortNum": 7,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.id", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-08",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Start Task (PENDING → IN_PROGRESS)",
+      "url": "{{baseUrl}}/api/employee/tasks/{{taskId}}/status",
+      "method": "PUT",
+      "sortNum": 8,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" }
+      ]
+    },
+    {
+      "id": "req-09",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Pause Task (IN_PROGRESS → ON_HOLD)",
+      "url": "{{baseUrl}}/api/employee/tasks/{{taskId}}/status",
+      "method": "PUT",
+      "sortNum": 9,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"ON_HOLD\"\n}"
+      }
+    },
+    {
+      "id": "req-10",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-tasks",
+      "name": "Complete Task (→ COMPLETED)",
+      "url": "{{baseUrl}}/api/employee/tasks/{{taskId}}/status",
+      "method": "PUT",
+      "sortNum": 10,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+      }
+    },
+    {
+      "id": "req-11",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-work-updates",
+      "name": "Create Work Update (multipart)",
+      "url": "{{baseUrl}}/api/employee/tasks/{{taskId}}/work-update",
+      "method": "POST",
+      "sortNum": 11,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "body": {
+        "type": "formdata",
+        "form": [
+          { "name": "title", "value": "GST Filing Progress Update" },
+          { "name": "description", "value": "Completed data collection phase" },
+          { "name": "progress", "value": "60" },
+          { "name": "remarks", "value": "Waiting for client confirmation on figures" }
+        ]
+      },
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "201" }
+      ]
+    },
+    {
+      "id": "req-12",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-work-updates",
+      "name": "Get Task History",
+      "url": "{{baseUrl}}/api/employee/tasks/{{taskId}}/history",
+      "method": "GET",
+      "sortNum": 12,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.workUpdates", "action": "isValue" },
+        { "type": "json-query", "custom": "$.data.statusHistory", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-13",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-performance",
+      "name": "Get Performance",
+      "url": "{{baseUrl}}/api/employee/performance",
+      "method": "GET",
+      "sortNum": 13,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.score", "action": "isValue" },
+        { "type": "json-query", "custom": "$.data.weeklyProductivity", "action": "isValue" },
+        { "type": "json-query", "custom": "$.data.monthlyProductivity", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-14",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-incentives",
+      "name": "Get Incentives",
+      "url": "{{baseUrl}}/api/employee/incentives",
+      "method": "GET",
+      "sortNum": 14,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.currentMonthTotal", "action": "isValue" },
+        { "type": "json-query", "custom": "$.data.leaderboardPosition", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-15",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-attendance",
+      "name": "Check In (GPS)",
+      "url": "{{baseUrl}}/api/employee/checkin",
+      "method": "POST",
+      "sortNum": 15,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"latitude\": 12.9716,\n  \"longitude\": 77.5946\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "201" }
+      ]
+    },
+    {
+      "id": "req-16",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-attendance",
+      "name": "Check Out (GPS)",
+      "url": "{{baseUrl}}/api/employee/checkout",
+      "method": "POST",
+      "sortNum": 16,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"latitude\": 12.9716,\n  \"longitude\": 77.5946\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.workingHours", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-17",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-attendance",
+      "name": "Get Attendance - Today",
+      "url": "{{baseUrl}}/api/employee/attendance?filter=today",
+      "method": "GET",
+      "sortNum": 17,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ]
+    },
+    {
+      "id": "req-18",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-attendance",
+      "name": "Get Attendance - Weekly",
+      "url": "{{baseUrl}}/api/employee/attendance?filter=weekly",
+      "method": "GET",
+      "sortNum": 18,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ]
+    },
+    {
+      "id": "req-19",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-attendance",
+      "name": "Get Attendance - Monthly",
+      "url": "{{baseUrl}}/api/employee/attendance?filter=monthly",
+      "method": "GET",
+      "sortNum": 19,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.summary.present", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-20",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-profile",
+      "name": "Get Profile",
+      "url": "{{baseUrl}}/api/employee/profile",
+      "method": "GET",
+      "sortNum": 20,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" },
+        { "type": "json-query", "custom": "$.data.employeeCode", "action": "isValue" }
+      ]
+    },
+    {
+      "id": "req-21",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-profile",
+      "name": "Update Profile (phone + password)",
+      "url": "{{baseUrl}}/api/employee/profile",
+      "method": "PUT",
+      "sortNum": 21,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "body": {
+        "type": "formdata",
+        "form": [
+          { "name": "phone", "value": "+91-9876543210" },
+          { "name": "emergencyContact", "value": "+91-9000000000" },
+          { "name": "address", "value": "123 Main Street, Bangalore" }
+        ]
+      },
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" }
+      ]
+    },
+    {
+      "id": "req-22",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-notifications",
+      "name": "Get Notifications",
+      "url": "{{baseUrl}}/api/employee/notifications?page=1&limit=20",
+      "method": "GET",
+      "sortNum": 22,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" }
+      ]
+    },
+    {
+      "id": "req-23",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-notifications",
+      "name": "Mark Notification as Read",
+      "url": "{{baseUrl}}/api/employee/notifications/{{notificationId}}/read",
+      "method": "PATCH",
+      "sortNum": 23,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" }
+      ]
+    },
+    {
+      "id": "req-24",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-documents",
+      "name": "Get Documents",
+      "url": "{{baseUrl}}/api/employee/documents?page=1&limit=20",
+      "method": "GET",
+      "sortNum": 24,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "200" }
+      ]
+    },
+    {
+      "id": "req-25",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-documents",
+      "name": "Get Documents - Search",
+      "url": "{{baseUrl}}/api/employee/documents?search=GST",
+      "method": "GET",
+      "sortNum": 25,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{employeeToken}}" }
+      ]
+    },
+    {
+      "id": "req-26",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-auth",
+      "name": "⛔ Dashboard - No Token (expect 401)",
+      "url": "{{baseUrl}}/api/employee/dashboard",
+      "method": "GET",
+      "sortNum": 26,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "401" }
+      ]
+    },
+    {
+      "id": "req-27",
+      "colId": "employee-mobile-backend-v1",
+      "folderId": "f-auth",
+      "name": "⛔ Dashboard - Admin Token (expect 403)",
+      "url": "{{baseUrl}}/api/employee/dashboard",
+      "method": "GET",
+      "sortNum": 27,
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{adminToken}}" }
+      ],
+      "tests": [
+        { "type": "res-code", "custom": "", "action": "equal", "value": "403" }
+      ]
+    }
+  ],
+  "environments": [
+    {
+      "id": "env-local",
+      "name": "Local Development",
+      "variables": [
+        { "name": "baseUrl", "value": "http://localhost:4000", "isSecret": false },
+        { "name": "employeeToken", "value": "PASTE_EMPLOYEE_JWT_HERE", "isSecret": true },
+        { "name": "adminToken", "value": "PASTE_ADMIN_JWT_HERE", "isSecret": true },
+        { "name": "taskId", "value": "1", "isSecret": false },
+        { "name": "notificationId", "value": "1", "isSecret": false }
+      ]
+    }
+  ]
+}

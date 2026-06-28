@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>FieldCore - Document Upload</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary-fixed": "#291800",
+                "primary-fixed": "#ffddb3",
+                "on-surface-variant": "#524533",
+                "on-background": "#211a11",
+                "surface-container": "#fbebdc",
+                "surface-container-lowest": "#ffffff",
+                "surface-dim": "#e6d8c9",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed-variant": "#633f00",
+                "secondary-container": "#ffcf90",
+                "surface-container-low": "#fff1e4",
+                "on-primary-container": "#613e00",
+                "on-secondary-fixed-variant": "#60400d",
+                "on-error": "#ffffff",
+                "surface-container-highest": "#efe0d1",
+                "on-tertiary-fixed": "#001e2c",
+                "error": "#ba1a1a",
+                "surface-variant": "#efe0d1",
+                "secondary": "#7b5824",
+                "inverse-surface": "#372f25",
+                "surface": "#fff8f4",
+                "surface-bright": "#fff8f4",
+                "tertiary": "#00658a",
+                "tertiary-fixed-dim": "#7cd0ff",
+                "on-tertiary-fixed-variant": "#004c69",
+                "on-surface": "#211a11",
+                "surface-tint": "#825500",
+                "primary-fixed-dim": "#ffb951",
+                "on-secondary-container": "#795723",
+                "on-primary-fixed": "#291800",
+                "inverse-on-surface": "#fdeedf",
+                "on-error-container": "#93000a",
+                "inverse-primary": "#ffb951",
+                "tertiary-fixed": "#c4e7ff",
+                "tertiary-container": "#29c0ff",
+                "primary": "#825500",
+                "background": "#F5F5F5",
+                "error-container": "#ffdad6",
+                "primary-container": "#f4a300",
+                "on-primary": "#ffffff",
+                "secondary-fixed-dim": "#edbf80",
+                "outline": "#857461",
+                "secondary-fixed": "#ffddb3",
+                "outline-variant": "#d7c3ad",
+                "surface-container-high": "#f5e6d7",
+                "on-tertiary": "#ffffff"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "xs": "4px",
+                "xl": "32px",
+                "base": "4px",
+                "md": "16px",
+                "sm": "8px",
+                "container-margin": "24px",
+                "lg": "24px",
+                "gutter": "16px"
+        },
+        "fontFamily": {
+                "headline-md-mobile": [
+                        "Hanken Grotesk"
+                ],
+                "headline-md": [
+                        "Hanken Grotesk"
+                ],
+                "body-lg": [
+                        "Hanken Grotesk"
+                ],
+                "headline-sm": [
+                        "Hanken Grotesk"
+                ],
+                "label-md": [
+                        "JetBrains Mono"
+                ],
+                "display-lg": [
+                        "Hanken Grotesk"
+                ],
+                "body-md": [
+                        "Hanken Grotesk"
+                ]
+        },
+        "fontSize": {
+                "headline-md-mobile": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-sm": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: #ffffff; border: 1px solid #d7c3ad; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d7c3ad; border-radius: 10px; }
+        .upload-dashed { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%23825500FF' stroke-width='1.5' stroke-dasharray='6%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e"); border-radius: 8px; }
+        body { min-height: 100dvh; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+<!-- Top AppBar -->
+<header class="bg-surface-container-lowest sticky top-0 z-50 flex justify-between items-center w-full px-lg h-16 border-b border-outline-variant/30">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-low p-2 rounded-full transition-colors active:opacity-80">arrow_back</button>
+<h1 class="font-headline-sm text-headline-sm text-primary">FieldCore</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-primary/20">
+<img alt="Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyUsbGu0661dz9wPeLrfpEUi2bRRc2YqnHNGt2TFgVezuUElQMT3utJEToKLUZ__L2nlET4zhQ_z2Ww7Nyn9I9CVCvwg55dT33EjPtAynOl3lsXvgpF6sKc-17vu2M2hIVsedE_TW5sZ5-yDhb8r367SBmhbtJecFq31E28u4kAA9CcQfPVMwiQ4hrwol-aFpNIF-U6liAivuwRZimG4TO1AHBMd9RO8DZgtEg97KgVEzHW6LRoAxR6ZGK5R4Z8DupvFtiEpYnB2MS"/>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-5xl mx-auto px-lg py-xl space-y-xl">
+<!-- Header Section -->
+<section class="space-y-xs">
+<h2 class="font-display-lg text-display-lg text-on-surface">Document Verification</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Please upload the required documentation to proceed with your project assignment. Files must be under 25MB each.</p>
+</section>
+<!-- Bento Grid for Upload Types -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- Photos Card -->
+<div class="glass-card p-lg rounded-xl flex flex-col h-full hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">photo_library</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Photos</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container font-label-md text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">Required</span>
+</div>
+<div class="upload-dashed flex-grow flex flex-col items-center justify-center p-xl group cursor-pointer hover:bg-primary-container/5 transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-sm group-hover:scale-110 transition-transform">cloud_upload</span>
+<span class="font-label-md text-label-md text-primary text-center">Drag &amp; Drop or <span class="underline">Browse</span></span>
+<span class="font-label-md text-[11px] text-on-surface-variant text-center mt-xs">JPG, PNG up to 10MB</span>
+</div>
+</div>
+<!-- PDF/Contracts Card -->
+<div class="glass-card p-lg rounded-xl flex flex-col h-full hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Contracts</h3>
+</div>
+</div>
+<div class="upload-dashed flex-grow flex flex-col items-center justify-center p-xl group cursor-pointer hover:bg-primary-container/5 transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-sm group-hover:scale-110 transition-transform">upload_file</span>
+<span class="font-label-md text-label-md text-primary text-center">Upload PDF Agreement</span>
+<span class="font-label-md text-[11px] text-on-surface-variant text-center mt-xs">Must be digitally signed</span>
+</div>
+</div>
+<!-- Supporting Docs Card -->
+<div class="glass-card p-lg rounded-xl flex flex-col h-full hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">description</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Support</h3>
+</div>
+</div>
+<div class="upload-dashed flex-grow flex flex-col items-center justify-center p-xl group cursor-pointer hover:bg-primary-container/5 transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-sm group-hover:scale-110 transition-transform">add_box</span>
+<span class="font-label-md text-label-md text-primary text-center">Add Supporting Docs</span>
+<span class="font-label-md text-[11px] text-on-surface-variant text-center mt-xs">Invoices, certificates, etc.</span>
+</div>
+</div>
+</div>
+<!-- Upload Status & List -->
+<section class="space-y-md">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Recent Uploads</h3>
+<span class="font-label-md text-label-md text-primary">3 Files Uploaded</span>
+</div>
+<div class="space-y-sm">
+<!-- Completed Item -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between border-l-4 border-primary">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded bg-surface-container overflow-hidden border border-outline-variant">
+<img alt="Site Photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMTQSYOX7Za0oZEfbhWeKFk1B2kazYs5SCHFUBlHygYTcabyBwU-DOiALHs2ZFO51Jh0aYDf9u3XTIO3lQuBWx5W7W509LgCTAoOTLnbZn6pPQVj2Ym46_ZSeTlH8ehEzGhfBh3Buj-OW6GLSG2u3aAoXgtGxnaPETH2M0Hx2kSppwrkK09H8V3P6QSD3b5mJJIBRAw-2yLIDfA2NAQXGdAA0fS4ijjqpw3JMdZXq8GayDoio9P7hSqXfS0c6k8pdCbTL5vwwKSRC0"/>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">site_survey_north.jpg</p>
+<p class="font-label-md text-[11px] text-on-surface-variant">4.2 MB • Uploaded 2m ago</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors">delete</button>
+</div>
+</div>
+<!-- Progress Item -->
+<div class="glass-card p-md rounded-xl space-y-sm border-l-4 border-primary-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">compliance_checklist_v2.pdf</p>
+<p class="font-label-md text-[11px] text-on-surface-variant">Uploading... 65%</p>
+</div>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors">close</button>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary-container h-full w-[65%] transition-all duration-500"></div>
+</div>
+</div>
+<!-- Completed Item 2 -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between border-l-4 border-primary">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">contract_signed_final.pdf</p>
+<p class="font-label-md text-[11px] text-on-surface-variant">1.8 MB • Uploaded 15m ago</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors">delete</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Help Info -->
+<div class="bg-primary/5 p-md rounded-xl flex items-start gap-md border border-primary/10">
+<span class="material-symbols-outlined text-primary-container bg-primary rounded p-1 text-[18px]">info</span>
+<div class="space-y-xs">
+<p class="font-label-md text-label-md text-on-surface font-bold">Missing a document?</p>
+<p class="font-body-md text-body-md text-on-surface-variant">You can save your progress and return later to upload the remaining files. Your draft will be held for 7 days.</p>
+</div>
+</div>
+</main>
+<!-- Footer Action -->
+<footer class="bg-surface-container-lowest sticky bottom-0 border-t border-outline-variant/30 p-lg flex items-center justify-between z-50">
+<button class="font-label-md text-label-md text-primary px-lg py-2.5 rounded-lg hover:bg-surface-container-low transition-colors font-bold uppercase tracking-wide">Save for Later</button>
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-xl py-2.5 rounded-lg shadow hover:shadow-md active:scale-[0.98] transition-all font-bold uppercase tracking-wide">Done</button>
+</footer>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressBar = document.querySelector('.bg-primary-container.h-full');
+            if(progressBar) {
+                let width = 65;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                    } else {
+                        width += Math.random() * 2;
+                        if(width > 100) width = 100;
+                        progressBar.style.width = width + '%';
+                    }
+                }, 800);
+            }
+        });
+
+        const uploadAreas = document.querySelectorAll('.upload-dashed');
+        uploadAreas.forEach(area => {
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('bg-primary-container/10');
+            });
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('bg-primary-container/10');
+            });
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('bg-primary-container/10');
+            });
+        });
+    </script>
+</body></html>

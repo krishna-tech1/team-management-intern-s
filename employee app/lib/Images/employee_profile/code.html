@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile - FieldCore GST MCA</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary-fixed": "#291800",
+                "primary-fixed": "#ffddb3",
+                "on-surface-variant": "#524533",
+                "on-background": "#211a11",
+                "surface-container": "#fbebdc",
+                "on-tertiary-container": "#004b68",
+                "surface-container-lowest": "#ffffff",
+                "surface-dim": "#e6d8c9",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed-variant": "#633f00",
+                "secondary-container": "#ffcf90",
+                "surface-container-low": "#fff1e4",
+                "on-primary-container": "#613e00",
+                "on-secondary-fixed-variant": "#60400d",
+                "on-error": "#ffffff",
+                "surface-container-highest": "#efe0d1",
+                "on-tertiary-fixed": "#001e2c",
+                "error": "#ba1a1a",
+                "surface-variant": "#efe0d1",
+                "secondary": "#7b5824",
+                "inverse-surface": "#372f25",
+                "surface": "#fff8f4",
+                "surface-bright": "#fff8f4",
+                "tertiary": "#00658a",
+                "tertiary-fixed-dim": "#7cd0ff",
+                "on-tertiary-fixed-variant": "#004c69",
+                "on-surface": "#211a11",
+                "surface-tint": "#825500",
+                "primary-fixed-dim": "#ffb951",
+                "on-secondary-container": "#795723",
+                "on-primary-fixed": "#291800",
+                "inverse-on-surface": "#fdeedf",
+                "on-error-container": "#93000a",
+                "inverse-primary": "#ffb951",
+                "tertiary-fixed": "#c4e7ff",
+                "tertiary-container": "#29c0ff",
+                "primary": "#825500",
+                "background": "#f5f5f5",
+                "error-container": "#ffdad6",
+                "primary-container": "#f4a300",
+                "on-primary": "#ffffff",
+                "secondary-fixed-dim": "#edbf80",
+                "outline": "#857461",
+                "secondary-fixed": "#ffddb3",
+                "outline-variant": "#d7c3ad",
+                "surface-container-high": "#f5e6d7",
+                "on-tertiary": "#ffffff"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "xs": "4px",
+                "xl": "32px",
+                "base": "4px",
+                "md": "16px",
+                "sm": "8px",
+                "container-margin": "24px",
+                "lg": "24px",
+                "gutter": "16px"
+        },
+        "fontFamily": {
+                "headline-md-mobile": [
+                        "Hanken Grotesk"
+                ],
+                "headline-md": [
+                        "Hanken Grotesk"
+                ],
+                "body-lg": [
+                        "Hanken Grotesk"
+                ],
+                "headline-sm": [
+                        "Hanken Grotesk"
+                ],
+                "label-md": [
+                        "JetBrains Mono"
+                ],
+                "display-lg": [
+                        "Hanken Grotesk"
+                ],
+                "body-md": [
+                        "Hanken Grotesk"
+                ]
+        },
+        "fontSize": {
+                "headline-md-mobile": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-sm": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+      },
+    },
+  }
+</script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #f5f5f5; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .profile-gradient {
+            background: linear-gradient(135deg, #f4a300 0%, #825500 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- Top AppBar -->
+<header class="flex justify-between items-center w-full px-lg h-16 bg-surface-container-lowest sticky top-0 z-40 border-b border-outline-variant/30">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">FieldCore</h1>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface p-2 hover:bg-surface-container-low transition-colors rounded-full" data-icon="search">search</button>
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden border-2 border-primary/10">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged corporate executive with a friendly smile, set against a blurred modern office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgQBOoTQGAtAvzQY1cDLTP70HXcg1wwpWon7qd011cnXGeQIRgSIRrjFCH8r7_EgC0UOC5enm7oHQ1drj_W2c4zm5JUqzpOi0RBqmfP6rV4TYb8qOpzPHOD_ydU4u_PTV5ADDkb4glT7dd33kqIi7q_2THtgOWWwUcTN3teJv8QKT2kDS7nnCTG3ZhGhnl-5vVdvII3MAaedakYAFU8F-os2olIBCvx2WBXNyUL1rAY9y4HC5eUihOAOtXtJF-PtM49BQMlNxMKNyp"/>
+</div>
+</div>
+</header>
+<main class="max-w-2xl mx-auto px-4 md:px-0">
+<!-- Header Section -->
+<section class="mt-8 mb-10 flex flex-col items-center text-center">
+<div class="relative mb-6">
+<div class="w-32 h-32 rounded-xl border-4 border-white shadow-lg overflow-hidden profile-gradient flex items-center justify-center">
+<img alt="Large Profile" class="w-full h-full object-cover" data-alt="A high-resolution professional portrait of a senior field manager for a large enterprise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCDI5O9fZLK5S2XQUX7QpvYnFaH3gGFuaca5kibOWEBrkqV1PaXTSPmy1Me22zY4yDACkmCOcXs4mHcSKDMwZ30YdOi0SRs8qUKqTqR9m6IJ4Gg709URpJ8CYdrPTXzVtc2SP65EC97T5RgDfta9w6a0P329Yz2X05eraablP1G7CFaElvSUapT8NZe-oBD8zfcg0cxdRIXVBksmk9YivRiNxrUY8CfcvKSHXW-M_H7XNyF3xgJSPqu9TFjtRPWCu8YsaHv6QHu93_"/>
+</div>
+<button class="absolute bottom-1 right-1 bg-primary text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Arjun Vardhan</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Employee ID: <span class="font-semibold">FC-GST-9842</span></p>
+<div class="mt-4 flex gap-2">
+<span class="bg-surface-container-highest text-on-surface-variant px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span> Verified Field Expert
+                </span>
+</div>
+</section>
+<!-- Department & Info Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col gap-1">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Department</span>
+<p class="font-headline-sm text-headline-sm text-primary-container">GST MCA Operations</p>
+<div class="flex items-center gap-2 mt-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="location_on">location_on</span>
+<span class="text-body-md font-body-md">South Zone - Bangalore</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col gap-1">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Contact Information</span>
+<div class="flex items-center gap-3 mt-1">
+<span class="material-symbols-outlined text-primary" data-icon="mail">mail</span>
+<p class="font-body-lg text-body-lg">arjun.v@fieldcore.gov.in</p>
+</div>
+<div class="flex items-center gap-3 mt-2">
+<span class="material-symbols-outlined text-primary" data-icon="call">call</span>
+<p class="font-body-lg text-body-lg">+91 98860 12345</p>
+</div>
+</div>
+</div>
+<!-- Links Section -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden mb-8">
+<div class="px-5 py-4 border-b border-outline-variant/20">
+<h3 class="font-headline-sm text-headline-sm">Account Settings</h3>
+</div>
+<nav class="flex flex-col">
+<!-- Settings Link -->
+<a class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low transition-colors group" href="#">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface font-medium">General Settings</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Notification and display preferences</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</a>
+<!-- Change Password -->
+<a class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low transition-colors group" href="#">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="lock_reset">lock_reset</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface font-medium">Change Password</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Update your security credentials</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</a>
+<!-- Help & Support -->
+<a class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low transition-colors group" href="#">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface font-medium">Help &amp; Support</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">FAQs and operational guidelines</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</a>
+<!-- Logout -->
+<button class="flex items-center justify-between px-5 py-5 hover:bg-error/5 transition-colors group text-error w-full" onclick="confirmLogout()">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-error-container/30 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+</div>
+<div class="text-left">
+<p class="font-body-lg text-body-lg font-bold">Logout</p>
+<p class="font-label-sm text-label-sm text-on-error-container/70">Sign out from your session</p>
+</div>
+</div>
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</nav>
+</section>
+<!-- Version Info -->
+<footer class="text-center pb-12">
+<p class="font-label-sm text-label-sm text-outline-variant">FieldCore GST MCA v4.2.0-stable</p>
+<p class="font-label-sm text-label-sm text-outline-variant mt-1">© 2024 Ministry of Corporate Affairs</p>
+</footer>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-[0_-2px_10px_rgba(0,0,0,0.05)] border-t border-outline-variant/30">
+<!-- Home -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</button>
+<!-- Tasks -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span class="font-label-sm text-label-sm">Tasks</span>
+</button>
+<!-- Attendance -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-sm text-label-sm">Attendance</span>
+</button>
+<!-- Performance -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-label-sm text-label-sm">Performance</span>
+</button>
+<!-- Profile (ACTIVE) -->
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary rounded-xl px-4 py-1 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<!-- Logout Confirmation Modal -->
+<div class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4" id="logoutModal">
+<div class="absolute inset-0 bg-on-background/40 backdrop-blur-sm transition-opacity" onclick="closeLogout()"></div>
+<div class="relative bg-surface-container-lowest rounded-xl p-6 w-full max-w-sm shadow-2xl scale-95 transition-transform duration-300">
+<div class="text-center">
+<div class="w-16 h-16 bg-error-container/30 text-error rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-[32px]" data-icon="logout">logout</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Confirm Logout?</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">You will be required to sign in again to access your field tasks and performance metrics.</p>
+</div>
+<div class="mt-8 flex flex-col gap-3">
+<button class="bg-error text-white py-3 rounded-lg font-bold active:scale-95 transition-transform shadow-md" onclick="performLogout()">Sign Out</button>
+<button class="bg-surface-container-high text-on-surface-variant py-3 rounded-lg font-medium active:scale-95 transition-transform" onclick="closeLogout()">Cancel</button>
+</div>
+</div>
+</div>
+<script>
+        function confirmLogout() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.relative').classList.remove('scale-95');
+                modal.querySelector('.relative').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeLogout() {
+            const modal = document.getElementById('logoutModal');
+            modal.querySelector('.relative').classList.remove('scale-100');
+            modal.querySelector('.relative').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function performLogout() {
+            const btn = event.target;
+            btn.innerHTML = '<span class="inline-block animate-spin material-symbols-outlined">refresh</span>';
+            setTimeout(() => {
+                alert('Session terminated successfully.');
+                closeLogout();
+            }, 1000);
+        }
+    </script>
+</body></html>

@@ -1,0 +1,39 @@
+import { Router } from 'express';
+import authRouter from '../modules/auth/auth.routes';
+import dashboardRouter from '../modules/dashboard/dashboard.routes';
+import employeeRouter from '../modules/employees/employee.routes';
+import clientRouter from '../modules/clients/client.routes';
+import taskRouter from '../modules/tasks/task.routes';
+import allocationRouter from '../modules/allocations/allocation.routes';
+import documentRouter from '../modules/documents/document.routes';
+import analyticsRouter from '../modules/analytics/analytics.routes';
+import auditlogRouter from '../modules/auditlogs/auditlog.routes';
+import incentiveRouter from '../modules/incentives/incentive.routes';
+import employeeAccessRouter from '../modules/employeeAccess/employeeAccess.routes';
+import teamleadRouter from '../modules/teamlead/teamlead.routes';
+import employeeMobileRouter from '../modules/employee/employee.routes';
+import uploadRouter from './upload.routes';
+
+const router = Router();
+
+router.get('/', (_req, res) => {
+  res.json({ message: 'GST & MCA Operations Management API' });
+});
+
+router.use(authRouter);
+router.use(dashboardRouter);
+router.use(employeeRouter);
+router.use(clientRouter);
+router.use(taskRouter);
+router.use(allocationRouter);
+router.use(documentRouter);
+router.use(analyticsRouter);
+router.use(auditlogRouter);
+router.use(incentiveRouter);
+router.use(employeeAccessRouter);
+router.use(teamleadRouter);
+router.use(employeeMobileRouter);
+router.use(uploadRouter);
+
+export default router;
+

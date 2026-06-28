@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>FieldCore - Assigned Tasks</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#291800",
+                        "primary-fixed": "#ffddb3",
+                        "on-surface-variant": "#524533",
+                        "on-background": "#211a11",
+                        "surface-container": "#fbebdc",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#e6d8c9",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#633f00",
+                        "secondary-container": "#ffcf90",
+                        "surface-container-low": "#fff1e4",
+                        "on-primary-container": "#613e00",
+                        "on-secondary-fixed-variant": "#60400d",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#efe0d1",
+                        "on-tertiary-fixed": "#001e2c",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#efe0d1",
+                        "secondary": "#7b5824",
+                        "inverse-surface": "#372f25",
+                        "surface": "#fff8f4",
+                        "surface-bright": "#fff8f4",
+                        "tertiary": "#00658a",
+                        "tertiary-fixed-dim": "#7cd0ff",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "on-surface": "#211a11",
+                        "surface-tint": "#825500",
+                        "primary-fixed-dim": "#ffb951",
+                        "on-secondary-container": "#795723",
+                        "on-primary-fixed": "#291800",
+                        "inverse-on-surface": "#fdeedf",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#ffb951",
+                        "tertiary-fixed": "#c4e7ff",
+                        "tertiary-container": "#29c0ff",
+                        "primary": "#825500",
+                        "background": "#fff8f4",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#f4a300",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#edbf80",
+                        "outline": "#857461",
+                        "secondary-fixed": "#ffddb3",
+                        "outline-variant": "#d7c3ad",
+                        "surface-container-high": "#f5e6d7",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "container-margin": "24px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-header { backdrop-filter: blur(8px); background: rgba(255, 248, 244, 0.8); }
+        .card-shadow { box-shadow: 0 4px 12px rgba(130, 85, 0, 0.06); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="bg-[#F5F5F5] text-on-background min-h-screen">
+<!-- Top AppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface flex justify-between items-center px-margin-mobile h-16 glass-header border-b border-surface-container">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6LEHrwiG8TAHhB-93Yh_uti7lC8dTX9HXCUL3sUcONXIzrU4G-yyQ40XXkaM69vzcM30wMNgy3SQZrtq1Ol8OjMiS1n2kCuj9jY_n97mXvdJKEMCIdu8fjyfl5prv6Nj8tAzN41vEUH6cKISrI-VIdTrcKyGB9eT8j9h2fvGCDPIvWehevmKMCSwIQ9cDCmg7fMJQMDmqq-3W47pu3yY80qC_AVxGq9oDhvfIn1MOsfhgMZSocJy15sSLlSYOPY624ARi1Ij5XmRC"/>
+</div>
+<span class="font-headline-md text-headline-sm font-bold text-primary">FieldCore</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors active:opacity-80">
+<span class="material-symbols-outlined text-primary">search</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-32 px-margin-mobile max-w-2xl mx-auto">
+<!-- Search & Filter Cluster -->
+<div class="mb-6 flex gap-3">
+<div class="relative flex-grow">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-xl border-none bg-surface-container-lowest card-shadow text-body-md focus:ring-2 focus:ring-primary-container transition-all outline-none" placeholder="Search Task ID or Client..." type="text"/>
+</div>
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-lowest card-shadow hover:bg-surface-container-low transition-colors text-primary">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+<!-- Section Title -->
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Assigned Tasks</h2>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant font-label-md text-label-md rounded-full">12 Tasks</span>
+</div>
+<!-- Task List Layout -->
+<div class="space-y-4">
+<!-- Task Card 1: High Priority -->
+<div class="bg-white rounded-xl p-4 card-shadow border border-surface-container hover:border-primary-container transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary font-bold">#T-1024</span>
+<h3 class="font-headline-sm text-headline-sm mt-1">Reliance Industries Ltd.</h3>
+</div>
+<span class="px-2.5 py-1 bg-error-container text-on-error-container text-label-md font-medium rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+                    HIGH
+                </span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant mb-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-md">location_on</span>
+<span class="text-body-md">Mumbai, MH</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+<span class="text-body-md">Oct 24, 2023</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="text-label-md font-label-md text-on-surface-variant">Pending Review</span>
+</div>
+<button class="flex items-center gap-1 text-primary font-label-md text-label-md group-hover:gap-2 transition-all">
+                    VIEW DETAILS <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Task Card 2: Medium Priority -->
+<div class="bg-white rounded-xl p-4 card-shadow border border-surface-container hover:border-primary-container transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary font-bold">#T-1025</span>
+<h3 class="font-headline-sm text-headline-sm mt-1">Tata Consultancy Services</h3>
+</div>
+<span class="px-2.5 py-1 bg-surface-container-high text-primary text-label-md font-medium rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    MEDIUM
+                </span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant mb-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-md">location_on</span>
+<span class="text-body-md">Bengaluru, KA</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+<span class="text-body-md">Oct 26, 2023</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-label-md font-label-md text-on-surface-variant">Not Started</span>
+</div>
+<button class="flex items-center gap-1 text-primary font-label-md text-label-md group-hover:gap-2 transition-all">
+                    VIEW DETAILS <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Task Card 3: Low Priority with Incentive -->
+<div class="bg-white rounded-xl p-4 card-shadow border border-surface-container hover:border-primary-container transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-primary font-bold">#T-1028</span>
+<span class="px-2 py-0.5 bg-primary-container text-on-primary-container text-[10px] font-bold rounded-full">BONUS AVAILABLE</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mt-1">HDFC Bank Ltd.</h3>
+</div>
+<span class="px-2.5 py-1 bg-surface-container text-outline text-label-md font-medium rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">low_priority</span>
+                    LOW
+                </span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant mb-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-md">location_on</span>
+<span class="text-body-md">Pune, MH</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-md">calendar_today</span>
+<span class="text-body-md">Oct 30, 2023</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-label-md font-label-md text-on-surface-variant">Assigned</span>
+</div>
+<button class="flex items-center gap-1 text-primary font-label-md text-label-md group-hover:gap-2 transition-all">
+                    VIEW DETAILS <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Empty State Placeholder Image -->
+<div class="mt-8 py-10 flex flex-col items-center opacity-40">
+<div class="w-24 h-24 mb-4 rounded-3xl bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="A clean, minimalist high-key photography of a modern professional workspace with architectural shadows. The scene features a sleek desk with a single organized document and a fountain pen, symbolizing order and field operations management. Soft morning light streams through a window, creating a calm, authoritative atmosphere with a professional enterprise SaaS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi9G0Uj5S3ih32biM3PyzzYHmziHX6Hv82_B_sI6INNSw5tAnny3FMTvCg3KgkA4YGGi6tEqvNC86KoR2dXzgIPysyhrJ7NL0nnUjiFPwRBa9TJDygCk5DAo5WHH7kNQEXhxklS4qvRaMBVxbFX4DejpemGu2ywPITRTeaRv6UoMFk0VVGn1rWGm_1CE_Jq6lU_J3Rk_EV9LwBp1aFKm1aRHPr9yZsrq2X-aTXcglx9a6gK6DkjCFKicXChMQQqTqnjvOpyPI3Q7PC"/>
+</div>
+<p class="text-body-md font-medium text-on-surface-variant">No more tasks for today</p>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform duration-200 z-50">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+<!-- Bottom NavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-md border-t border-surface-container rounded-t-xl">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-[10px] mt-1">Home</span>
+</a>
+<!-- Tasks (Active) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-95 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment_turned_in</span>
+<span class="font-label-md text-[10px] mt-1 font-bold">Tasks</span>
+</a>
+<!-- Attendance -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-[10px] mt-1">Attendance</span>
+</a>
+<!-- Performance -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md text-[10px] mt-1">Performance</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-[10px] mt-1">Profile</span>
+</a>
+</nav>
+<script>
+    // Simple micro-interaction for task cards
+    document.querySelectorAll('.cursor-pointer').forEach(card => {
+        card.addEventListener('mousedown', () => card.style.transform = 'scale(0.98)');
+        card.addEventListener('mouseup', () => card.style.transform = 'scale(1)');
+        card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
+    });
+</script>
+</body></html>

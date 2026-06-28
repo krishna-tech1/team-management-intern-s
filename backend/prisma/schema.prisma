@@ -1,0 +1,500 @@
+ generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  TEAM_LEAD
+  EMPLOYEE
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  ON_HOLD
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  OVERDUE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LATE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeaveType {
+  SICK
+  CASUAL
+  EARNED
+  OTHER
+}
+
+enum TrackingStatus {
+  CHECKED_IN
+  CHECKED_OUT
+  LATE
+  OFFLINE
+}
+
+enum DocumentType {
+  GST
+  MCA
+  OTHER
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_COMPLETED
+  ANNOUNCEMENT
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  role       UserRole
+
+  employee   Employee?
+  teamLead   TeamLead?
+
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean  @default(false)
+
+  @@index([role])
+  @@index([isDeleted])
+}
+
+model Employee {
+  id               Int            @id @default(autoincrement())
+  employeeCode     String         @unique
+  firstName        String
+  lastName         String
+  email            String         @unique
+  phone            String?
+  department       String?
+  designation      String?
+  joiningDate      DateTime
+  status           EmployeeStatus
+  profilePhotoUrl     String?
+  profilePhotoPublicId String?
+
+  userId           Int?           @unique
+  user             User?          @relation(fields: [userId], references: [id])
+
+  taskAssignments  TaskAssignment[]
+  attendances      Attendance[]
+  workLogs         WorkLog[]
+  documents        Document[]     // uploaded documents
+  notifications    Notification[]
+
+  // New relations
+  assignedClients     Client[]           @relation("EmployeeClients")
+  assignedTasks       Task[]             @relation("EmployeeTasks")
+  allocations         Allocation[]
+  employeeDocs        Document[]         @relation("EmployeeDocs") // documents belonging to employee
+  incentives          Incentive[]
+  teamLeadMemberships TeamLeadEmployee[]
+  leaveRequests       LeaveRequest[]
+  workUpdates         TaskWorkUpdate[]
+  taskStatusHistory   TaskStatusHistory[]
+
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  isDeleted        Boolean        @default(false)
+
+  @@index([status])
+  @@index([department])
+  @@index([isDeleted])
+}
+
+model Client {
+  id             Int          @id @default(autoincrement())
+  clientCode     String       @unique
+  companyName    String
+  contactPerson  String
+  email          String       @unique
+  phone          String?
+  gstNumber      String?      @unique
+  panNumber      String?      @unique
+  address        String?
+  status         ClientStatus
+
+  tasks          Task[]
+  documents      Document[]
+
+  // New fields & relations
+  serviceType        String?
+  assignedEmployeeId Int?
+  assignedEmployee   Employee?    @relation("EmployeeClients", fields: [assignedEmployeeId], references: [id])
+  allocations        Allocation[]
+  invoices           Invoice[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDeleted      Boolean      @default(false)
+
+  @@index([status])
+  @@index([companyName])
+  @@index([isDeleted])
+}
+
+model Task {
+  id            Int           @id @default(autoincrement())
+  title         String
+  description   String?
+
+  status        TaskStatus    @default(PENDING)
+  priority      TaskPriority  @default(MEDIUM)
+
+  startDate     DateTime?
+  dueDate       DateTime?
+
+  clientId      Int
+  client        Client        @relation(fields: [clientId], references: [id])
+
+  assignments   TaskAssignment[]
+  workLogs      WorkLog[]
+
+  // New fields & relations
+  assignedEmployeeId Int?
+  assignedEmployee   Employee?     @relation("EmployeeTasks", fields: [assignedEmployeeId], references: [id])
+  createdBy          String?
+  siteLocation       String?       // optional site/location info for mobile display
+
+  workUpdates        TaskWorkUpdate[]
+  statusHistory      TaskStatusHistory[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  isDeleted     Boolean       @default(false)
+
+  @@index([status])
+  @@index([priority])
+  @@index([clientId])
+  @@index([dueDate])
+  @@index([isDeleted])
+}
+
+model TaskAssignment {
+  id          Int       @id @default(autoincrement())
+
+  taskId      Int
+  employeeId  Int
+
+  assignedAt  DateTime  @default(now())
+
+  task        Task      @relation(fields: [taskId], references: [id])
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+
+  @@index([taskId])
+  @@index([employeeId])
+}
+
+model Attendance {
+  id                 Int               @id @default(autoincrement())
+
+  employeeId         Int
+
+  checkInTime        DateTime?
+  checkOutTime       DateTime?
+
+  checkInLatitude    Float?
+  checkInLongitude   Float?
+
+  checkOutLatitude   Float?
+  checkOutLongitude  Float?
+
+  checkInAddress     String?
+  checkOutAddress    String?
+
+  status             AttendanceStatus
+  date               DateTime?         // date of this attendance record
+  remarks            String?
+  selfieUrl          String?
+  selfiePublicId     String?
+
+  employee           Employee          @relation(fields: [employeeId], references: [id])
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([employeeId])
+  @@index([date])
+}
+
+model WorkLog {
+  id                   Int        @id @default(autoincrement())
+
+  employeeId           Int
+  taskId               Int
+
+  description          String
+  completionPercentage Int
+
+  employee             Employee   @relation(fields: [employeeId], references: [id])
+  task                 Task       @relation(fields: [taskId], references: [id])
+
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@index([employeeId])
+  @@index([taskId])
+}
+
+model Document {
+  id            Int          @id @default(autoincrement())
+
+  fileName      String
+  filePath      String
+  documentType  DocumentType @default(OTHER)
+
+  clientId      Int?
+  client        Client?      @relation(fields: [clientId], references: [id])
+
+  uploadedById  Int?
+  uploadedByEmp Employee?    @relation(fields: [uploadedById], references: [id])
+
+  // New fields & relations
+  fileUrl       String?
+  publicId      String?
+  employeeId    Int?
+  employee      Employee?    @relation("EmployeeDocs", fields: [employeeId], references: [id])
+  uploadedBy    String?      // Email or username of the person who uploaded
+
+  createdAt     DateTime     @default(now())
+
+  @@index([documentType])
+  @@index([clientId])
+  @@index([employeeId])
+}
+
+model Notification {
+  id          Int               @id @default(autoincrement())
+
+  title       String
+  message     String
+
+  type        NotificationType
+
+  employeeId  Int?
+  employee    Employee?         @relation(fields: [employeeId], references: [id])
+
+  isRead      Boolean           @default(false)
+
+  // Team Lead extensions
+  createdBy   String?           // email of sender
+  isTeamLead  Boolean           @default(false)
+
+  createdAt   DateTime          @default(now())
+
+  @@index([employeeId])
+  @@index([isRead])
+}
+
+model AuditLog {
+  id          Int        @id @default(autoincrement())
+
+  module      String
+  action      String
+
+  entityId    Int?
+
+  performedBy String
+
+  // New field
+  entity      String?
+
+  createdAt   DateTime   @default(now())
+
+  @@index([module])
+  @@index([action])
+}
+
+model Allocation {
+  id          Int      @id @default(autoincrement())
+  clientId    Int
+  employeeId  Int
+  allocatedBy String
+  allocatedAt DateTime @default(now())
+
+  client      Client   @relation(fields: [clientId], references: [id])
+  employee    Employee @relation(fields: [employeeId], references: [id])
+
+  @@index([clientId])
+  @@index([employeeId])
+}
+
+model Incentive {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  amount      Float
+  month       String   // e.g., "YYYY-MM"
+  createdAt   DateTime @default(now())
+
+  @@index([employeeId])
+}
+
+model Invoice {
+  id          Int      @id @default(autoincrement())
+  amount      Float
+  status      String   // "PAID", "PENDING"
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([clientId])
+}
+
+// ─── TEAM LEAD MODELS ─────────────────────────────────────────────────────────
+
+model TeamLead {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+  teamName    String?
+  department  String?
+  profilePhotoUrl     String?
+  profilePhotoPublicId String?
+
+  teamMembers TeamLeadEmployee[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model TeamLeadEmployee {
+  id         Int      @id @default(autoincrement())
+  teamLeadId Int
+  employeeId Int
+
+  teamLead   TeamLead @relation(fields: [teamLeadId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  assignedAt DateTime @default(now())
+
+  @@unique([teamLeadId, employeeId])
+  @@index([teamLeadId])
+  @@index([employeeId])
+}
+
+model LeaveRequest {
+  id          Int         @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee    @relation(fields: [employeeId], references: [id])
+
+  leaveType   LeaveType
+  fromDate    DateTime
+  toDate      DateTime
+  reason      String?
+  status      LeaveStatus @default(PENDING)
+
+  reviewedBy  String?     // Team Lead email
+  reviewNote  String?
+  reviewedAt  DateTime?
+  proofUrl    String?
+  proofPublicId String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+// ─── EMPLOYEE MOBILE BACKEND MODELS ─────────────────────────────────────────
+
+model TaskWorkUpdate {
+  id          Int      @id @default(autoincrement())
+
+  taskId      Int
+  task        Task     @relation(fields: [taskId], references: [id])
+
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id])
+
+  title       String
+  description String?
+  progress    Int      @default(0)   // 0–100 percentage
+  remarks     String?
+
+  attachments TaskWorkAttachment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([taskId])
+  @@index([employeeId])
+}
+
+model TaskWorkAttachment {
+  id            Int            @id @default(autoincrement())
+
+  workUpdateId  Int
+  workUpdate    TaskWorkUpdate @relation(fields: [workUpdateId], references: [id])
+
+  fileName      String
+  filePath      String
+  fileUrl       String?
+  publicId      String?
+  fileType      String         // "photo" | "document"
+
+  createdAt     DateTime       @default(now())
+
+  @@index([workUpdateId])
+}
+
+model TaskStatusHistory {
+  id          Int        @id @default(autoincrement())
+
+  taskId      Int
+  task        Task       @relation(fields: [taskId], references: [id])
+
+  employeeId  Int
+  employee    Employee   @relation(fields: [employeeId], references: [id])
+
+  fromStatus  TaskStatus?
+  toStatus    TaskStatus
+  changedAt   DateTime   @default(now())
+  note        String?
+
+  @@index([taskId])
+  @@index([employeeId])
+}

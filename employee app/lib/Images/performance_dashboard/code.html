@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FieldCore Performance Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#291800",
+                        "primary-fixed": "#ffddb3",
+                        "on-surface-variant": "#524533",
+                        "on-background": "#211a11",
+                        "surface-container": "#fbebdc",
+                        "on-tertiary-container": "#004b68",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#e6d8c9",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#633f00",
+                        "secondary-container": "#ffcf90",
+                        "surface-container-low": "#fff1e4",
+                        "on-primary-container": "#613e00",
+                        "on-secondary-fixed-variant": "#60400d",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#efe0d1",
+                        "on-tertiary-fixed": "#001e2c",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#efe0d1",
+                        "secondary": "#7b5824",
+                        "inverse-surface": "#372f25",
+                        "surface": "#fff8f4",
+                        "surface-bright": "#fff8f4",
+                        "tertiary": "#00658a",
+                        "tertiary-fixed-dim": "#7cd0ff",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "on-surface": "#211a11",
+                        "surface-tint": "#825500",
+                        "primary-fixed-dim": "#ffb951",
+                        "on-secondary-container": "#795723",
+                        "on-primary-fixed": "#291800",
+                        "inverse-on-surface": "#fdeedf",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#ffb951",
+                        "tertiary-fixed": "#c4e7ff",
+                        "tertiary-container": "#29c0ff",
+                        "primary": "#825500",
+                        "background": "#f5f5f5",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#f4a300",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#edbf80",
+                        "outline": "#857461",
+                        "secondary-fixed": "#ffddb3",
+                        "outline-variant": "#d7c3ad",
+                        "surface-container-high": "#f5e6d7",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "base": "8px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- Top AppBar -->
+<header class="bg-surface-container-lowest sticky top-0 z-40 flex justify-between items-center w-full px-margin-mobile h-16 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvKHS2LDmNLoaEGrfRhwHfhcPsTVAyi1dCXscab6rDxQijVZzlzVWMx3ctlwVpfZVpnc5vaz9Plgs7oP_QTC-_McUFOMNVzqgG_FVUk82L3VxDq9q-HmgR2SeP1kwQfo7GHUd68AkvfP2CSeXtjmoLeEJNQIh4dbdHiSKNt-kDFAAmzpX4bSkfzP21AgzyBXGOJIErsq3VXBeJyKnZFKmqqhEwzzHcKlZ23ptlAlOzEhjK4bYGwHnDlEWoPJepRfTRhDhlUReetFl_"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary">FieldCore</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors active:opacity-80">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+</button>
+</header>
+<main class="px-margin-mobile pt-6 max-w-5xl mx-auto space-y-6">
+<!-- Score Highlight Section (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="md:col-span-2 bg-primary-container text-on-primary p-8 rounded-xl relative overflow-hidden flex flex-col justify-between shadow-md">
+<div class="z-10">
+<p class="font-label-md text-label-md opacity-90 mb-1">CURRENT PERFORMANCE SCORE</p>
+<h1 class="font-headline-lg text-headline-lg mb-2">94.2%</h1>
+<div class="flex items-center gap-2 bg-white/20 w-fit px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<span class="text-xs font-semibold">+4.5% vs last month</span>
+</div>
+</div>
+<div class="z-10 mt-8">
+<p class="text-sm opacity-90 max-w-xs">Excellent work this month. You're currently in the top 5% of field agents.</p>
+</div>
+<!-- Abstract background decorative element -->
+<div class="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+</div>
+<!-- Mini Summary Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-center text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-secondary-container text-on-secondary-container rounded-full mx-auto mb-4">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-1">Silver Tier</h3>
+<p class="text-on-surface-variant text-sm">340 points to Gold</p>
+<div class="w-full bg-surface-container-highest h-2 rounded-full mt-4 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+</section>
+<!-- Main Chart Section -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Weekly Productivity</h2>
+<p class="text-on-surface-variant text-sm">Completion volume over time</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-xs font-semibold rounded-full bg-surface-container text-on-surface-variant">Daily</button>
+<button class="px-3 py-1 text-xs font-semibold rounded-full bg-primary text-on-primary">Weekly</button>
+</div>
+</div>
+<!-- Pseudo Chart Design -->
+<div class="h-48 w-full relative flex items-end gap-1 px-2 mb-4">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="border-t border-outline-variant/30 w-full"></div>
+<div class="border-t border-outline-variant/30 w-full"></div>
+<div class="border-t border-outline-variant/30 w-full"></div>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary/10 rounded-t-sm transition-all group-hover:bg-primary/20" style="height: 60%;"></div>
+<span class="text-[10px] mt-2 text-on-surface-variant">Mon</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary/10 rounded-t-sm transition-all group-hover:bg-primary/20" style="height: 75%;"></div>
+<span class="text-[10px] mt-2 text-on-surface-variant">Tue</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary/10 rounded-t-sm transition-all group-hover:bg-primary/20" style="height: 55%;"></div>
+<span class="text-[10px] mt-2 text-on-surface-variant">Wed</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary/10 rounded-t-sm transition-all group-hover:bg-primary/20" style="height: 90%;"></div>
+<span class="text-[10px] mt-2 text-on-surface-variant">Thu</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary rounded-t-sm transition-all" style="height: 82%;"></div>
+<span class="text-[10px] mt-2 text-primary font-bold">Fri</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary/10 rounded-t-sm transition-all group-hover:bg-primary/20" style="height: 40%;"></div>
+<span class="text-[10px] mt-2 text-on-surface-variant">Sat</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary/10 rounded-t-sm transition-all group-hover:bg-primary/20" style="height: 30%;"></div>
+<span class="text-[10px] mt-2 text-on-surface-variant">Sun</span>
+</div>
+<svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible" preserveaspectratio="none">
+<path class="text-primary opacity-30" d="M 0 100 Q 150 20 300 80 T 600 10" fill="none" stroke="currentColor" stroke-width="3"></path>
+</svg>
+</div>
+</section>
+<!-- KPI Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Task Completion -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="assignment_turned_in">assignment_turned_in</span>
+</div>
+<span class="text-primary font-semibold text-xs">+2.4%</span>
+</div>
+<h4 class="text-on-surface-variant text-sm mb-1">Task Completion</h4>
+<p class="font-headline-sm text-headline-sm">98.2%</p>
+</div>
+<!-- Attendance -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="calendar_today">calendar_today</span>
+</div>
+<span class="text-secondary font-semibold text-xs">Perfect</span>
+</div>
+<h4 class="text-on-surface-variant text-sm mb-1">Attendance</h4>
+<p class="font-headline-sm text-headline-sm">100%</p>
+</div>
+<!-- Performance Trend -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" data-icon="insights">insights</span>
+</div>
+<span class="text-error font-semibold text-xs">-0.8%</span>
+</div>
+<h4 class="text-on-surface-variant text-sm mb-1">Trend Velocity</h4>
+<p class="font-headline-sm text-headline-sm">+12.5%</p>
+</div>
+</section>
+<!-- Achievement Badges -->
+<section class="space-y-4">
+<div class="flex justify-between items-center px-2">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Recent Achievements</h2>
+<button class="text-primary text-sm font-semibold">View All</button>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-2">
+<!-- Badge 1 -->
+<div class="flex-shrink-0 w-36 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant flex flex-col items-center text-center">
+<div class="w-16 h-16 mb-3 relative">
+<div class="absolute inset-0 bg-primary/10 rounded-full scale-110"></div>
+<img alt="Top Performer Badge" class="relative z-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXET8jILKBgU7jk2dIfDNAR4iIJB5BoJZJxN8ZwWh8xhLDSwg_XJUi1eGjqL0tuHB9YCs85GK2ykf-pwFv4fg5JzeScNRaTiTUuL8FSTdFwcq92XXCdyFnz7XZHmA7GdLXpEtiWPOPm-60Mrgv1P6yT4S3ry8xqCn02ymY0mV48_v_-pFSDxzQc3pTVUfyCU8p_bX40eBCtBROr2SVrQ90AkcoVNcFcglB_wXpTOT1OyQXdoEawymtY-UCHJrGLUZE5vPsfFsp6vuF"/>
+</div>
+<span class="text-xs font-bold text-on-surface">Top Performer</span>
+<span class="text-[10px] text-on-surface-variant mt-1">October 2023</span>
+</div>
+<!-- Badge 2 -->
+<div class="flex-shrink-0 w-36 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant flex flex-col items-center text-center opacity-80 hover:opacity-100 transition-opacity">
+<div class="w-16 h-16 mb-3 relative">
+<div class="absolute inset-0 bg-secondary/10 rounded-full scale-110"></div>
+<img alt="Always On Time Badge" class="relative z-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI-XVxZuzuzSxL3kvWwjhKWtloLB_gKHLzyKdT220VoNV0JxUvgJbhySHTiRb7Zq4dv5xyVBym8sQTlVV4Xb8jvK7t50ZDTaAf1phhnUU33l_xdsjvtPTpTentoFxjNa0Z8OiCpZpKMNvnm2YdvWveNnvvn58dj8TE-h7_wXSH3l_hheWfkil4cCE81Y8djWWNYFtG9kMStBrcFTx3Rjs9HFbBkIXOWArGrDhnQaJy8WiXCXx6jtXWFfH4Jb5uBK0tLp_YYVE5OHWa"/>
+</div>
+<span class="text-xs font-bold text-on-surface">Always On Time</span>
+<span class="text-[10px] text-on-surface-variant mt-1">15 Day Streak</span>
+</div>
+<!-- Badge 3 -->
+<div class="flex-shrink-0 w-36 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant flex flex-col items-center text-center opacity-80">
+<div class="w-16 h-16 mb-3 relative">
+<div class="absolute inset-0 bg-tertiary-container/10 rounded-full scale-110"></div>
+<img alt="Peer Star Badge" class="relative z-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_VO657FxuRZgsT36_s8JzIHc-OIP65cW0YldjM3PFKXDftzA5AVGDoZWZHx7EGO70uQ9_pS2DbBc91gNe8DM9H2xLTznlFoWF40_j6Vdt9feWisXLbLDYXJG4l0POwetN7NRlGUOVmfKs6v-3vSpIVgVdkS9EgBOKx9AkErr5eOMc10BdzcOkR4CebGMH-4ODqRjPbEikPRfgDXFfpl0xUQmYDrJGpzuhZgJrSrEV4ECS9svMEhlj67d5Fdi_TNk2as2WYwq7twLU"/>
+</div>
+<span class="text-xs font-bold text-on-surface">Peer Star</span>
+<span class="text-[10px] text-on-surface-variant mt-1">5+ Commends</span>
+</div>
+<!-- Badge 4 -->
+<div class="flex-shrink-0 w-36 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant flex flex-col items-center text-center opacity-60 grayscale">
+<div class="w-16 h-16 mb-3 relative">
+<div class="absolute inset-0 bg-outline/10 rounded-full scale-110"></div>
+<img alt="Locked Achievement" class="relative z-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3WMwqDGjLfqBWpyAuLaGXUjonDqGKf8M5MDVl0yJwXTXgd0XfCeynL6xgHmejksJ0EW7Fc64YD6dIORJbVEa-ITHwjcclD_acoYVzSMZTrvBlEDH98ggcK_B496az6OGbXCBA1jcuOy99E3tXmQ0ZUiwNNbLoesj-74Bpp-7YPNKySy0nA7mV_NACdNwnjXikhM9NL-WTuW0K2FVZq43OdLo8U7K14Hr941SKfcjw9LYPW-lzaIfM8LqqRrrOJF9ESN7MoCPvZ495"/>
+</div>
+<span class="text-xs font-bold text-on-surface">Goal Crusher</span>
+<span class="text-[10px] text-on-surface-variant mt-1">Locked</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-lg border-t border-outline-variant">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span class="font-label-sm text-label-sm">Tasks</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-sm text-label-sm">Attendance</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary px-4 py-1 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="insights" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-label-sm text-label-sm font-bold">Performance</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<script>
+        // Interactive Micro-interactions
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', () => {
+                btn.style.opacity = '0.7';
+            });
+            btn.addEventListener('touchend', () => {
+                btn.style.opacity = '1';
+            });
+        });
+
+        // Simple Chart Animation Simulation
+        window.addEventListener('load', () => {
+            const bars = document.querySelectorAll('.bg-primary, .bg-primary\\/10');
+            bars.forEach((bar, index) => {
+                const finalHeight = bar.style.height;
+                bar.style.height = '0%';
+                setTimeout(() => {
+                    bar.style.transition = 'height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    bar.style.height = finalHeight;
+                }, 100 * index);
+            });
+        });
+    </script>
+</body></html>
