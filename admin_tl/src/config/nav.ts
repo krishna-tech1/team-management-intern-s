@@ -9,6 +9,7 @@ import {
   ClipboardList,
   MapPin,
   Settings,
+  FolderOpen,
 } from "lucide-react"
 import type { NavItem } from "@/components/layout/Sidebar"
 
@@ -19,6 +20,7 @@ export const adminNav: NavItem[] = [
   { label: "Clients", to: "/clients", icon: Building2 },
   { label: "Tasks", to: "/tasks", icon: ListChecks },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
+  { label: "Documents", to: "/documents", icon: FolderOpen },
 ]
 
 export const leadNav: NavItem[] = [

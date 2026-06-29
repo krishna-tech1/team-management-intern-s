@@ -59,7 +59,7 @@ export const clientService = {
     const raw = await apiClient.post(`${getPrefix()}/clients`, payload);
     return mapClient(raw);
   },
-  updateClient: async (id: string, updates: Partial<Client>): Promise<Client> => {
+  updateClient: async (id: string, updates: Partial<Client> & { assignedEmployeeId?: number | null }): Promise<Client> => {
     const payload: any = {};
     if (updates.company) payload.companyName = updates.company;
     if (updates.contactPerson) payload.contactPerson = updates.contactPerson;
@@ -68,6 +68,9 @@ export const clientService = {
     if (updates.gstin) payload.gstNumber = updates.gstin;
     if (updates.pan) payload.panNumber = updates.pan;
     if (updates.address) payload.address = updates.address;
+    if ('assignedEmployeeId' in updates) {
+      payload.assignedEmployeeId = updates.assignedEmployeeId;
+    }
 
     const raw = await apiClient.put(`${getPrefix()}/clients/${id}`, payload);
     return mapClient(raw);

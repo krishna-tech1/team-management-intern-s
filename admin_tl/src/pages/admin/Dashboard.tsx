@@ -11,49 +11,43 @@ import { StatusBadge } from "@/components/ui/StatusBadge"
 import { ProgressBar } from "@/components/ui/ProgressBar"
 import { DonutChart } from "@/components/ui/DonutChart"
 import Spinner from "@/components/ui/Spinner"
-import { type Employee } from "@/data/employees"
-import { type Client } from "@/data/clients"
-import { type Task } from "@/data/tasks"
-import { employeeService } from "@/services/employeeService"
-import { clientService } from "@/services/clientService"
-import { taskService } from "@/services/taskService"
+import { analyticsService, type DashboardStats } from "@/services/analyticsService"
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const [employeesList, setEmployeesList] = useState<Employee[]>([])
-  const [clientsList, setClientsList] = useState<Client[]>([])
-  const [tasksList, setTasksList] = useState<Task[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    Promise.all([
-      employeeService.getEmployees(),
-      clientService.getClients(),
-      taskService.getTasks()
-    ])
-      .then(([emps, clis, tsks]) => {
-        setEmployeesList(emps)
-        setClientsList(clis)
-        setTasksList(tsks)
+  const loadData = () => {
+    setLoading(true)
+    setError(null)
+    analyticsService.getDashboardStats()
+      .then((data) => {
+        setStats(data)
         setLoading(false)
       })
       .catch((err) => {
         setError(err.message || 'Failed to load dashboard metrics')
         setLoading(false)
       })
+  }
+
+  useEffect(() => {
+    loadData()
   }, [])
 
-  const ranking = employeesList.filter((e) => e.score >= 90).sort((a, b) => a.rank - b.rank)
-  const totalClients = clientsList.length
-  const activeStaff = employeesList.filter((e) => e.status === 'Active').length
-  const openTasks = tasksList.filter((t) => t.status !== 'Completed').length
+  const ranking = stats?.topPerformers ?? []
+  const totalClients = stats?.clients ?? 0
+  const activeStaff = stats?.activeEmployees ?? 0
+  const openTasks = (stats?.tasks ?? 0) - (stats?.completedTasks ?? 0)
 
-  const completedTasksCount = tasksList.filter((t) => t.status === 'Completed').length
-  const inProgressTasksCount = tasksList.filter((t) => t.status === 'In Progress').length
+  const completedTasksCount = stats?.completedTasks ?? 0
+  const inProgressTasksCount = stats?.inProgressTasks ?? 0
+  const totalTasks = stats?.tasks ?? 0
   
-  const completionRate = tasksList.length > 0 
-    ? Math.round((completedTasksCount / tasksList.length) * 100) 
+  const completionRate = totalTasks > 0 
+    ? Math.round((completedTasksCount / totalTasks) * 100) 
     : 0
 
   return (
@@ -76,9 +70,17 @@ export default function Dashboard() {
       />
 
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          <AlertCircle className="h-5 w-5" />
-          <span>{error}</span>
+        <div className="mb-4 flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={loadData}
+            className="rounded bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       )}
 
@@ -135,15 +137,15 @@ export default function Dashboard() {
                           </td>
                           <td className="px-6 py-3.5">
                             <div className="flex items-center gap-3">
-                              <Avatar name={emp.name} src={emp.avatar} size={34} />
+                              <Avatar name={emp.name} src={emp.avatar ?? undefined} size={34} />
                               <span className="text-sm font-bold text-ink">{emp.name}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-3.5 text-sm text-ink-soft">{emp.team}</td>
+                          <td className="px-6 py-3.5 text-sm text-ink-soft">{emp.department ?? 'GST'}</td>
                           <td className="px-6 py-3.5 text-sm font-bold text-ink">{emp.tasksClosed}</td>
                           <td className="px-6 py-3.5">
                             <div className="w-28">
-                              <ProgressBar value={emp.score} />
+                              <ProgressBar value={emp.efficiency} />
                             </div>
                           </td>
                           <td className="px-6 py-3.5">

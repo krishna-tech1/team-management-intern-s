@@ -26,6 +26,17 @@ export const createIncentive = async (
     throw new Error('Invalid month format. Please use YYYY-MM (e.g., 2026-06)');
   }
 
+  // Prevent duplicate payouts for the same employee in the same month
+  const existing = await prisma.incentive.findFirst({
+    where: {
+      employeeId: data.employeeId,
+      month: data.month,
+    },
+  });
+  if (existing) {
+    throw new Error('Incentive already exists for this employee and month');
+  }
+
   const incentive = await prisma.incentive.create({
     data: {
       employeeId: data.employeeId,
@@ -79,4 +90,33 @@ export const getAllIncentives = async (
   ]);
 
   return { incentives, total, page, limit };
+};
+
+export const getIncentiveFreeze = async (month: string) => {
+  const record = await prisma.incentiveFreeze.findUnique({
+    where: { month },
+  });
+  return record || { month, isFrozen: false };
+};
+
+export const setIncentiveFreeze = async (month: string, isFrozen: boolean, performedBy: string) => {
+  const monthRegex = /^\d{4}-\d{2}$/;
+  if (!monthRegex.test(month)) {
+    throw new Error('Invalid month format. Please use YYYY-MM');
+  }
+
+  const record = await prisma.incentiveFreeze.upsert({
+    where: { month },
+    create: { month, isFrozen },
+    update: { isFrozen },
+  });
+
+  await createAuditLog(
+    `Incentives records for ${month} were ${isFrozen ? 'frozen' : 'unfrozen'}`,
+    performedBy,
+    'System',
+    0
+  );
+
+  return record;
 };

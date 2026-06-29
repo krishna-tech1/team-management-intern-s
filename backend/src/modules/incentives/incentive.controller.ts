@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../middleware/auth.middleware';
-import { createIncentive, getAllIncentives } from './incentive.service';
+import { createIncentive, getAllIncentives, getIncentiveFreeze, setIncentiveFreeze } from './incentive.service';
 import {
   successResponse,
   errorResponse,
@@ -53,5 +53,30 @@ export const getAllIncentivesController = async (
     );
   } catch (err: any) {
     return errorResponse(res, err.message, 500);
+  }
+};
+
+export const getIncentiveFreezeController = async (req: AuthRequest, res: Response) => {
+  try {
+    const month = req.query.month as string;
+    if (!month) return errorResponse(res, 'month query parameter is required (format: YYYY-MM)', 400);
+    const data = await getIncentiveFreeze(month);
+    return successResponse(res, data, 'Incentive freeze status fetched successfully');
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
+  }
+};
+
+export const setIncentiveFreezeController = async (req: AuthRequest, res: Response) => {
+  try {
+    const { month, isFrozen } = req.body;
+    if (!month) return errorResponse(res, 'month is required (format: YYYY-MM)', 400);
+    if (isFrozen === undefined) return errorResponse(res, 'isFrozen is required', 400);
+    
+    const performedBy = req.user?.email || 'System';
+    const data = await setIncentiveFreeze(month, isFrozen, performedBy);
+    return successResponse(res, data, `Incentive records for ${month} updated successfully`);
+  } catch (err: any) {
+    return errorResponse(res, err.message, err.message.includes('Invalid') ? 400 : 500);
   }
 };

@@ -55,8 +55,14 @@ export default function AdminTasks() {
   }
 
   async function deleteTask(id: string) {
-    // Delete task endpoint is a placeholder in taskService. For backend prep we trigger update/removal.
-    toast({ type: 'success', message: 'Task delete requested' })
+    if (!confirm('Are you sure you want to delete this task?')) return
+    try {
+      await taskService.deleteTask(id)
+      setDataVersion((v) => v + 1)
+      toast({ type: 'success', message: 'Task deleted successfully' })
+    } catch (err: any) {
+      toast({ type: 'error', message: err.message || 'Failed to delete task' })
+    }
   }
 
   // listen for external task changes

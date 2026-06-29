@@ -14,6 +14,8 @@ const getPrefix = () => {
 };
 
 const mapEmployee = (emp: any): Employee => {
+  const score = emp.performanceScore ?? 85;
+  const incentiveEarned = score >= 90 ? 10000 : score >= 80 ? 5000 : 0;
   return {
     id: String(emp.id),
     name: `${emp.firstName} ${emp.lastName}`,
@@ -23,7 +25,8 @@ const mapEmployee = (emp: any): Employee => {
     designation: emp.designation || 'Associate',
     team: emp.department || 'Compliance',
     status: emp.status === 'ACTIVE' ? 'Active' : 'Inactive',
-    score: emp.performanceScore || 85,
+    score,
+    incentiveEarned,
     rank: emp.rank || 1,
     tasksClosed: emp.tasksClosed || 0,
     joiningDate: emp.joiningDate ? new Date(emp.joiningDate).toISOString().split('T')[0] : '',

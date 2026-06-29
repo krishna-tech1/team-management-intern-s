@@ -28,10 +28,15 @@ async function request(endpoint: string, options: RequestOptions = {}) {
     }
   } catch (_) {}
 
+  const isFormData = options.body instanceof FormData;
+
   const headers = new Headers({
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   });
+
+  if (!isFormData) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
@@ -46,7 +51,7 @@ async function request(endpoint: string, options: RequestOptions = {}) {
   };
 
   if (options.body) {
-    config.body = JSON.stringify(options.body);
+    config.body = isFormData ? options.body : JSON.stringify(options.body);
   }
 
   try {

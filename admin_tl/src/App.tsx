@@ -26,6 +26,7 @@ import AdminClientAllocation from "@/pages/admin/ClientAllocation"
 import ManageAllocation from "@/pages/admin/ManageAllocation"
 import AdminEmployeeOnboard from "@/pages/admin/EmployeeOnboarding"
 import AdminCreateTask from "@/pages/admin/CreateTask"
+import AdminDocuments from "@/pages/admin/Documents"
 
 // Lead pages (ported from JS project)
 import LeadDashboard from "@/pages/lead/Dashboard"
@@ -126,6 +127,10 @@ export default function App() {
 
         <Route path="/analytics" element={<AdminLayout />}>
           <Route index element={<AdminAnalytics />} />
+        </Route>
+
+        <Route path="/documents" element={<AdminLayout />}>
+          <Route index element={<AdminDocuments />} />
         </Route>
 
         {/* Lead routes — protected */}

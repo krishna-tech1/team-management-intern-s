@@ -497,4 +497,12 @@ model TaskStatusHistory {
 
   @@index([taskId])
   @@index([employeeId])
+}
+
+model IncentiveFreeze {
+  id        Int      @id @default(autoincrement())
+  month     String   @unique
+  isFrozen  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
