@@ -89,7 +89,7 @@ class IncentivesOverviewScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Current Month Earnings', style: AppTextStyles.headlineMedium),
-                                  Text('Estimated Payout: Nov 5, 2023', style: AppTextStyles.bodySmall),
+                                  Text('Estimated Payout: Nov 5, 2025', style: AppTextStyles.bodySmall),
                                 ],
                               ),
                             ),

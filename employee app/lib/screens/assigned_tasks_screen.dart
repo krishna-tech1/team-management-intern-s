@@ -4,6 +4,7 @@ import '../utils/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../widgets/fieldcore_bottom_nav.dart';
 import '../providers/task_provider.dart';
+import '../providers/auth_provider.dart';
 import 'task_details_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -16,6 +17,18 @@ class AssignedTasksScreen extends StatefulWidget {
 
 class _AssignedTasksScreenState extends State<AssignedTasksScreen> {
   final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final auth = context.read<AuthProvider>();
+        final employeeId = auth.currentUser?.uid ?? '';
+        context.read<TaskProvider>().initializeTasks(employeeId);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -319,12 +332,6 @@ class _AssignedTasksScreenState extends State<AssignedTasksScreen> {
             const SizedBox(height: 80),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: AppColors.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: const FieldCoreBottomNav(currentIndex: 1),
     );

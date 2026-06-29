@@ -9,6 +9,7 @@ import Spinner from '@/components/ui/Spinner'
 import { Avatar } from '@/components/ui/Avatar'
 import { toast } from '@/components/ui/Toast'
 import { AlertCircle } from 'lucide-react'
+import { taskService } from '@/services/taskService'
 
 interface AttentionRow {
   id: string
@@ -100,12 +101,13 @@ export default function LeadDashboard() {
     downloadCsv(rows, 'dashboard_overview_report.csv')
   }
 
-  const handleAction = (actionLabel: string, employeeName: string) => {
+  const handleAction = (actionLabel: string, employeeId: string) => {
     if (actionLabel === 'Assign Now') {
-      setSelectedEmp(employeeName)
+      setSelectedEmp(employeeId)
       setShowAssignModal(true)
     } else {
-      alert(`Reviewing work/profile for ${employeeName}...`)
+      const emp = employeesList.find(e => e.id === employeeId)
+      alert(`Reviewing work/profile for ${emp ? emp.name : 'employee'}...`)
     }
   }
 
@@ -252,7 +254,7 @@ export default function LeadDashboard() {
                               </div>
                             </td>
                             <td className="overview-action-td">
-                              <button className="overview-action-btn" onClick={() => handleAction(row.actionLabel, row.employee)}>
+                              <button className="overview-action-btn" onClick={() => handleAction(row.actionLabel, row.id)}>
                                 {row.actionLabel}
                               </button>
                             </td>
@@ -363,7 +365,7 @@ export default function LeadDashboard() {
                 >
                   <option value="">Choose an employee...</option>
                   {employeesList.map(emp => (
-                    <option key={emp.id} value={emp.name}>{emp.name} ({emp.designation})</option>
+                    <option key={emp.id} value={emp.id}>{emp.name} ({emp.designation})</option>
                   ))}
                 </select>
               </div>
@@ -377,7 +379,7 @@ export default function LeadDashboard() {
                 >
                   <option value="">Choose a client...</option>
                   {clientsList.map(cli => (
-                    <option key={cli.id} value={cli.company}>{cli.company}</option>
+                    <option key={cli.id} value={cli.id}>{cli.company}</option>
                   ))}
                 </select>
               </div>
@@ -412,7 +414,7 @@ export default function LeadDashboard() {
               </button>
               <button
                 className="overview-btn-gold"
-                onClick={() => {
+                onClick={async () => {
                   if (!taskName.trim()) {
                     toast({ message: 'Task name is required', type: 'error' })
                     return
@@ -426,12 +428,43 @@ export default function LeadDashboard() {
                     return
                   }
                   
-                  toast({ message: `Task "${taskName}" successfully assigned to ${selectedEmp}!`, type: 'success' })
-                  setShowAssignModal(false)
-                  setTaskName('')
-                  setSelectedEmp('')
-                  setSelectedClient('')
-                  setTaskPriority('Standard')
+                  try {
+                    // Map priorities
+                    const priorityMap: Record<string, string> = {
+                      'Low': 'LOW',
+                      'Standard': 'MEDIUM',
+                      'High': 'HIGH',
+                      'Critical': 'URGENT'
+                    };
+                    const priority = priorityMap[taskPriority] || 'MEDIUM';
+
+                    await taskService.createTask({
+                      name: taskName,
+                      description: 'Task auto-assigned from Team Lead Console',
+                      priority,
+                      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days default
+                      clientId: parseInt(selectedClient),
+                      assignedEmployeeId: parseInt(selectedEmp)
+                    });
+
+                    const empObj = employeesList.find(e => e.id === selectedEmp);
+                    const empName = empObj ? empObj.name : 'selected employee';
+
+                    toast({ message: `Task "${taskName}" successfully assigned to ${empName}!`, type: 'success' })
+                    
+                    // Reset modal state
+                    setShowAssignModal(false)
+                    setTaskName('')
+                    setSelectedEmp('')
+                    setSelectedClient('')
+                    setTaskPriority('Standard')
+
+                    // Refresh employees to update the assigned task count/stats
+                    const emps = await employeeService.getEmployees();
+                    setEmployeesList(emps);
+                  } catch (err: any) {
+                    toast({ message: err.message || 'Failed to assign task', type: 'error' })
+                  }
                 }}
               >
                 Assign Task

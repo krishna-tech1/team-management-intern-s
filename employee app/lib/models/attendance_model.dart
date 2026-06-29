@@ -34,7 +34,7 @@ class AttendanceModel {
   factory AttendanceModel.fromJson(Map<String, dynamic> json) {
     DateTime? parseDate(String? value) {
       if (value == null) return null;
-      return DateTime.tryParse(value);
+      return DateTime.tryParse(value)?.toLocal();
     }
 
     return AttendanceModel(

@@ -13,6 +13,40 @@ async function getEmployeeByUserId(userId: number) {
   return employee;
 }
 
+/** Calculate performance score based on on-time completion of assigned tasks. */
+async function calculatePerformanceScore(employeeId: number): Promise<number> {
+  const assignedTasks = await prisma.task.findMany({
+    where: { assignedEmployeeId: employeeId, isDeleted: false },
+    include: {
+      statusHistory: {
+        where: { toStatus: 'COMPLETED' },
+        orderBy: { changedAt: 'asc' },
+      },
+    },
+  });
+
+  if (assignedTasks.length === 0) return 0;
+
+  let onTimeCount = 0;
+  for (const task of assignedTasks) {
+    if (task.status === 'COMPLETED') {
+      if (!task.dueDate) {
+        onTimeCount++;
+        continue;
+      }
+      const completionDate = task.statusHistory.length > 0
+        ? task.statusHistory[0].changedAt
+        : task.updatedAt;
+
+      if (new Date(completionDate) <= new Date(task.dueDate)) {
+        onTimeCount++;
+      }
+    }
+  }
+
+  return Math.round((onTimeCount / assignedTasks.length) * 100);
+}
+
 /** Today's date at midnight (local) in UTC for DB queries */
 function todayStart() {
   const d = new Date();
@@ -104,11 +138,8 @@ export const getEmployeeDashboard = async (userId: number) => {
     },
   });
 
-  // Performance score: ratio of completed to total tasks * 100
-  const performanceScore =
-    assignedCount > 0
-      ? Math.round((completedCount / assignedCount) * 100)
-      : 0;
+  // Performance score: ratio of completed on-time to total tasks * 100
+  const performanceScore = await calculatePerformanceScore(employee.id);
 
   return {
     employee: {
@@ -382,9 +413,7 @@ export const getEmployeePerformance = async (userId: number) => {
     }),
   ]);
 
-  const score = totalAssigned > 0
-    ? Math.round((totalCompleted / totalAssigned) * 100)
-    : 0;
+  const score = await calculatePerformanceScore(employee.id);
 
   // Weekly productivity: last 7 days
   const weeklyProductivity = await buildDailyProductivity(employee.id, 7);
@@ -742,16 +771,8 @@ export const getEmployeeProfile = async (userId: number) => {
     _sum: { amount: true },
   });
 
-  // Performance score
-  const [completed, assigned] = await Promise.all([
-    prisma.task.count({
-      where: { assignedEmployeeId: employee.id, status: 'COMPLETED', isDeleted: false },
-    }),
-    prisma.task.count({
-      where: { assignedEmployeeId: employee.id, isDeleted: false },
-    }),
-  ]);
-  const performanceScore = assigned > 0 ? Math.round((completed / assigned) * 100) : 0;
+  // Performance score: ratio of completed on-time to total tasks * 100
+  const performanceScore = await calculatePerformanceScore(employee.id);
 
   return {
     id: employee.id,

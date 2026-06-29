@@ -58,12 +58,6 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: const Color(0xFFF39C12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        child: const Icon(Icons.add, color: Colors.black87),
-      ),
       bottomNavigationBar: const FieldCoreBottomNav(currentIndex: 0),
     );
   }
@@ -113,89 +107,96 @@ class _GreetingCard extends StatelessWidget {
 class _PerformanceScoreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider, width: 0.8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color.fromARGB(255, 140, 97, 28), width:10 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
-                    '85',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF966314),
-                    ),
-                  ),
-                  Text(
-                    'SCORE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return Consumer<EmployeeProvider>(
+      builder: (context, employeeProvider, _) {
+        final employee = employeeProvider.employee;
+        final score = employee?.performanceScore ?? 0;
+        
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.divider, width: 0.8),
           ),
-          const SizedBox(width: 20),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Performance\nScore', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const PerformanceDashboardScreen()),
-                    );
-                  },
-                  child: const Text(
-                    'View Details >',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF966314)),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFD194),
-                    borderRadius: BorderRadius.circular(8),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color.fromARGB(255, 140, 97, 28), width: 10),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.trending_up, size: 14, color: Color(0xFF966314)),
-                      SizedBox(width: 4),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       Text(
-                        '+12% vs last\nmonth',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF966314), fontWeight: FontWeight.w600),
+                        '$score',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF966314),
+                        ),
+                      ),
+                      const Text(
+                        'SCORE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textMuted,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Performance\nScore', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const PerformanceDashboardScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'View Details >',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF966314)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD194),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.trending_up, size: 14, color: Color(0xFF966314)),
+                          SizedBox(width: 4),
+                          Text(
+                            '+12% vs last\nmonth',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF966314), fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

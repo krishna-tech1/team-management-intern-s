@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +19,8 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+  Timer? _clockTimer;
+  DateTime _currentDateTime = DateTime.now();
 
   @override
   void initState() {
@@ -29,11 +32,26 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentDateTime = DateTime.now();
+        });
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final auth = context.read<AuthProvider>();
+        final employeeId = auth.currentUser?.uid ?? '';
+        context.read<AttendanceProvider>().initializeAttendance(employeeId);
+      }
+    });
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _clockTimer?.cancel();
     super.dispose();
   }
 
@@ -47,8 +65,8 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
     final hasCheckOut = attProvider.todayAttendance?.checkOutTime != null;
     final formatter = DateFormat('hh:mm a');
     
-    final String checkInText = hasCheckIn ? formatter.format(attProvider.todayAttendance!.checkInTime!) : '--';
-    final String checkOutText = hasCheckOut ? formatter.format(attProvider.todayAttendance!.checkOutTime!) : '--';
+    final String checkInText = hasCheckIn ? formatter.format(attProvider.todayAttendance!.checkInTime!.toLocal()) : '--';
+    final String checkOutText = hasCheckOut ? formatter.format(attProvider.todayAttendance!.checkOutTime!.toLocal()) : '--';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -229,12 +247,74 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
+                        // Real-Time Clock Card
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.divider, width: 0.8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'CURRENT TIME',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('hh:mm:ss a').format(_currentDateTime),
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text(
+                                    'CURRENT DATE',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('EEE, MMM dd, yyyy').format(_currentDateTime),
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         // Check In / Check Out Buttons
                         Row(
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: attProvider.isClockedIn
+                                onPressed: hasCheckIn
                                     ? null
                                     : () async {
                                         final now = DateTime.now();
@@ -254,6 +334,10 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             const SnackBar(content: Text('Checked In successfully!'), backgroundColor: AppColors.primary),
                                           );
+                                        } else if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text(attProvider.error ?? 'Failed to Check In'), backgroundColor: Colors.red),
+                                          );
                                         }
                                       },
                                 icon: const Icon(Icons.login, color: Colors.white),
@@ -268,9 +352,8 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
                             const SizedBox(width: 12),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: !attProvider.isClockedIn
-                                    ? null
-                                    : () async {
+                                onPressed: (hasCheckIn && !hasCheckOut)
+                                    ? () async {
                                         final todayAttId = attProvider.todayAttendance?.id ?? '';
                                         if (todayAttId.isEmpty) return;
                                         
@@ -284,8 +367,13 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen>
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             const SnackBar(content: Text('Checked Out successfully!'), backgroundColor: AppColors.primary),
                                           );
+                                        } else if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text(attProvider.error ?? 'Failed to Check Out'), backgroundColor: Colors.red),
+                                          );
                                         }
-                                      },
+                                      }
+                                    : null,
                                 icon: const Icon(Icons.logout, color: AppColors.primary),
                                 label: const Text('Check-Out', style: TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.w600)),
                                 style: OutlinedButton.styleFrom(
@@ -380,7 +468,7 @@ class _AttendanceLogItem extends StatelessWidget {
     final isIn = log.checkOutTime == null;
     final isVerified = log.status == 'VERIFIED';
     final formatter = DateFormat('MMM dd • hh:mm a');
-    final String displayDate = log.checkInTime != null ? formatter.format(log.checkInTime!) : log.date;
+    final String displayDate = log.checkInTime != null ? formatter.format(log.checkInTime!.toLocal()) : log.date;
     final String logType = log.checkOutTime != null ? 'Clock Out' : 'Clock In';
 
     return Container(

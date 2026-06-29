@@ -5,6 +5,8 @@ import { taskService } from '@/services/taskService'
 import { employeeService } from '@/services/employeeService'
 import Spinner from '@/components/ui/Spinner'
 import { AlertCircle } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 
 export default function TaskAssigning() {
   const [tasksList, setTasksList] = useState<any[]>([])
@@ -135,13 +137,13 @@ export default function TaskAssigning() {
 
   return (
     <div className="task-page" style={{ padding: 24 }}>
-      <div className="task-header-row" style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: 24 }}>
+      <div className="task-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
           <h2 className="task-page-title" style={{ fontSize: 28, fontWeight: 800 }}>Task Management</h2>
           <p className="task-page-subtitle" style={{ fontSize: 14, color: 'var(--color-ink-soft)', marginTop: 4 }}>Assign workflows and monitor delivery efficiency across teams.</p>
         </div>
         <div className="task-header-actions" style={{ display: 'flex', gap: 12 }}>
-          <button className="task-btn-outline" onClick={handleExportProgress} style={{ padding: '8px 16px', border: '1px solid #e7e9f1', borderRadius: 8, fontSize: 13, background: 'white', display: 'flex', items: 'center', gap: 6, cursor: 'pointer' }}>
+          <button className="task-btn-outline" onClick={handleExportProgress} style={{ padding: '8px 16px', border: '1px solid #e7e9f1', borderRadius: 8, fontSize: 13, background: 'white', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Export Progress
           </button>

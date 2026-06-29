@@ -11,6 +11,7 @@ class Employee {
   final String? profilePictureUrl; // Optional profile picture URL hosted by backend storage
   final bool isOnboarded; // Flag indicating if the admin-created employee completed onboarding
   final DateTime createdAt; // Date and time when the employee record was created
+  final int performanceScore; // Performance score based on on-time task completion
 
   Employee({
     required this.id,
@@ -23,6 +24,7 @@ class Employee {
     this.profilePictureUrl,
     required this.isOnboarded,
     required this.createdAt,
+    this.performanceScore = 0,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class Employee {
       profilePictureUrl: profilePictureUrl.isNotEmpty ? profilePictureUrl : null,
       isOnboarded: json['isOnboarded'] ?? true,
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      performanceScore: json['performanceScore'] is num ? (json['performanceScore'] as num).toInt() : 0,
     );
   }
 
@@ -59,6 +62,7 @@ class Employee {
       'profilePictureUrl': profilePictureUrl,
       'isOnboarded': isOnboarded,
       'createdAt': createdAt.toIso8601String(),
+      'performanceScore': performanceScore,
     };
   }
 
@@ -72,6 +76,7 @@ class Employee {
     String? profilePictureUrl,
     bool? isOnboarded,
     DateTime? createdAt,
+    int? performanceScore,
   }) {
     return Employee(
       id: id,
@@ -84,6 +89,7 @@ class Employee {
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       isOnboarded: isOnboarded ?? this.isOnboarded,
       createdAt: createdAt ?? this.createdAt,
+      performanceScore: performanceScore ?? this.performanceScore,
     );
   }
 }

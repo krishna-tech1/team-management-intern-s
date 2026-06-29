@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../utils/app_theme.dart';
 import '../widgets/fieldcore_bottom_nav.dart';
+import '../providers/employee_provider.dart';
 
 class PerformanceDashboardScreen extends StatefulWidget {
   const PerformanceDashboardScreen({super.key});
@@ -56,9 +58,14 @@ class _PerformanceDashboardScreenState extends State<PerformanceDashboardScreen>
                     style: AppTextStyles.labelLarge.copyWith(color: Colors.white70),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '94.2%',
-                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.w800, color: Colors.white),
+                  Consumer<EmployeeProvider>(
+                    builder: (context, employeeProvider, _) {
+                      final score = employeeProvider.employee?.performanceScore ?? 0;
+                      return Text(
+                        '$score%',
+                        style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w800, color: Colors.white),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -167,21 +174,21 @@ class _PerformanceDashboardScreenState extends State<PerformanceDashboardScreen>
               child: Column(
                 children: [
                   _IncentiveRow(
-                    month: 'September 2023',
+                    month: 'September 2025',
                     type: 'Performance Bonus',
                     amount: '\$450.00',
                     paidDate: 'Paid Oct 05',
                   ),
                   const Divider(height: 1, color: AppColors.divider),
                   _IncentiveRow(
-                    month: 'August 2023',
+                    month: 'August 2025',
                     type: 'Quality Merit',
                     amount: '\$385.50',
                     paidDate: 'Paid Sep 05',
                   ),
                   const Divider(height: 1, color: AppColors.divider),
                   _IncentiveRow(
-                    month: 'July 2023',
+                    month: 'July 2025',
                     type: 'Loyalty Program',
                     amount: '\$412.00',
                     paidDate: 'Paid Aug 05',
@@ -207,11 +214,11 @@ class _PerformanceDashboardScreenState extends State<PerformanceDashboardScreen>
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: const [
-                  _AchievementCard(label: 'Top Performer', subtitle: 'October 2023', icon: Icons.emoji_events),
+                  _AchievementCard(label: 'Top Performer', subtitle: 'October 2025', icon: Icons.emoji_events),
                   SizedBox(width: 10),
                   _AchievementCard(label: 'Always On Time', subtitle: '15 Day Streak', icon: Icons.alarm_on),
                   SizedBox(width: 10),
-                  _AchievementCard(label: 'Quality Star', subtitle: 'September 2023', icon: Icons.star),
+                  _AchievementCard(label: 'Quality Star', subtitle: 'September 2025', icon: Icons.star),
                 ],
               ),
             ),

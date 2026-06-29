@@ -42,7 +42,35 @@ class ApiClient {
   }
 
   http.Response _handleResponse(http.Response response) {
+    final path = response.request?.url.path ?? '';
+    
+    String extractErrorMessage(Map body) {
+      if (body.containsKey('message')) {
+        return body['message'].toString();
+      }
+      if (body.containsKey('error') && body['error'] is Map) {
+        final errorMap = body['error'] as Map;
+        if (errorMap.containsKey('message')) {
+          return errorMap['message'].toString();
+        }
+      }
+      return '';
+    }
+
     if (response.statusCode == 401) {
+      if (path.endsWith('/auth/login')) {
+        String errorMessage = 'Invalid credentials';
+        try {
+          final body = jsonDecode(response.body);
+          if (body is Map) {
+            final parsedMsg = extractErrorMessage(body);
+            if (parsedMsg.isNotEmpty) {
+              errorMessage = parsedMsg;
+            }
+          }
+        } catch (_) {}
+        throw HttpException(errorMessage);
+      }
       clearToken();
       if (onUnauthorized != null) {
         onUnauthorized!();
@@ -54,8 +82,11 @@ class ApiClient {
       String errorMessage = 'Server error (${response.statusCode})';
       try {
         final body = jsonDecode(response.body);
-        if (body is Map && body.containsKey('message')) {
-          errorMessage = body['message'].toString();
+        if (body is Map) {
+          final parsedMsg = extractErrorMessage(body);
+          if (parsedMsg.isNotEmpty) {
+            errorMessage = parsedMsg;
+          }
         }
       } catch (_) {}
       throw HttpException(errorMessage);
