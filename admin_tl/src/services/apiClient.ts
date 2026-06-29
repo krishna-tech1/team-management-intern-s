@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://team-management-intern-s-pzly.vercel.app/api';
 const STORAGE_KEY = 'teamlead_session';
 
 interface RequestOptions extends RequestInit {
