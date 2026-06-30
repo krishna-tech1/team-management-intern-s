@@ -34,7 +34,8 @@ import LeadEmployeeTracking from "@/pages/lead/EmployeeTracking"
 import LeadReports from "@/pages/lead/Reports"
 import LeadIncentive from "@/pages/lead/Incentive"
 import LeadSettings from "@/pages/lead/Settings"
-import LeadTaskAssigning from "@/pages/lead/TaskAssigning"
+import LeadTasks from "@/pages/lead/Tasks"
+import LeadCreateTask from "@/pages/lead/CreateTask"
 import LeadEmployees from "@/pages/lead/Employees"
 import LeadClients from "@/pages/lead/Clients"
 
@@ -133,11 +134,16 @@ export default function App() {
           <Route index element={<AdminDocuments />} />
         </Route>
 
+        <Route path="/settings" element={<AdminLayout />}>
+          <Route index element={<LeadSettings />} />
+        </Route>
+
         {/* Lead routes — protected */}
         <Route path="/lead" element={<LeadLayout />}>
           <Route index element={<LeadDashboard />} />
           <Route path="tracking" element={<LeadEmployeeTracking />} />
-          <Route path="tasks" element={<LeadTaskAssigning />} />
+          <Route path="tasks" element={<LeadTasks />} />
+          <Route path="tasks/create" element={<LeadCreateTask />} />
           <Route path="analytics" element={<LeadReports />} />
           <Route path="incentives" element={<LeadIncentive />} />
           <Route path="settings" element={<LeadSettings />} />

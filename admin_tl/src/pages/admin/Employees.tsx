@@ -20,6 +20,7 @@ export default function AdminEmployees() {
   
   const [items, setItems] = useState<Employee[]>([])
   const [popoverOpenFor, setPopoverOpenFor] = useState<string | null>(null)
+  const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [advancedFilters, setAdvancedFilters] = useState<any>({})
   const [dataVersion, setDataVersion] = useState(0)
@@ -253,12 +254,12 @@ export default function AdminEmployees() {
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full table-fixed" style={{ tableLayout: 'fixed' }}>
                           <colgroup>
-                            <col style={{ width: '42%' }} />
+                            <col style={{ width: '38%' }} />
                             <col style={{ width: '16%' }} />
                             <col style={{ width: '16%' }} />
-                            <col style={{ width: '8%' }} />
-                            <col style={{ width: '9%' }} />
-                            <col style={{ width: '9%' }} />
+                            <col style={{ width: '10%' }} />
+                            <col style={{ width: '10%' }} />
+                            <col style={{ width: '10%' }} />
                           </colgroup>
                           <thead>
                             <tr className="border-y border-line text-left text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: 'var(--color-line-soft)', color: 'var(--color-ink-soft)', boxShadow: 'inset 0 -1px 0 rgba(16,24,40,0.02)' }}>
@@ -267,7 +268,7 @@ export default function AdminEmployees() {
                               <th className="px-6 py-4">Role</th>
                               <th className="px-6 py-4">Status</th>
                               <th onClick={() => { setSortKey('score'); setSortDir((d) => d === 'asc' ? 'desc' : 'asc'); setPage(1) }} className="px-6 py-4 cursor-pointer">Score</th>
-                              <th className="px-6 py-4 text-right last:rounded-tr-md">Actions</th>
+                              <th className="pl-2 pr-6 py-4 text-right last:rounded-tr-md">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -292,11 +293,31 @@ export default function AdminEmployees() {
                                     <div className="text-base font-semibold text-ink" style={{ transform: 'translateY(-1px)' }}>{emp.score}</div>
                                   </div>
                                 </td>
-                                <td className="px-6 py-6 relative">
+                                <td className="pl-2 pr-6 py-6 relative" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex items-center justify-end">
                                     <button
-                                      ref={kebabRef}
-                                      onClick={(e) => { e.stopPropagation(); setPopoverOpenFor((p) => (p === emp.id ? null : emp.id)) }}
+                                      onClick={(e) => {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const panelWidth = 320;
+                                        const panelHeight = 220;
+                                        const viewportHeight = window.innerHeight;
+                                        const viewportWidth = window.innerWidth;
+                                        
+                                        let top = rect.bottom;
+                                        if (viewportHeight - rect.bottom < panelHeight && rect.top > panelHeight) {
+                                          top = rect.top - panelHeight;
+                                        }
+                                        
+                                        let left = rect.right - panelWidth;
+                                        if (left < 16) {
+                                          left = 16;
+                                        } else if (left + panelWidth > viewportWidth - 16) {
+                                          left = viewportWidth - panelWidth - 16;
+                                        }
+
+                                        setPopoverCoords({ top, left });
+                                        setPopoverOpenFor((p) => p === emp.id ? null : emp.id);
+                                      }}
                                       className="flex h-8 w-8 items-center justify-center rounded-md text-ink-soft hover:bg-line-soft"
                                       aria-label="More"
                                     >
@@ -313,13 +334,14 @@ export default function AdminEmployees() {
                   )}
                 </div>
               </div>
-              {popoverOpenFor && (
+              {popoverOpenFor && popoverCoords && (
                 (() => {
                   const emp = employeesList.find((e) => e.id === popoverOpenFor)
                   if (!emp) return null
                   return (
                     <EmployeeQuickPanel
                       employee={emp}
+                      style={{ top: popoverCoords.top, left: popoverCoords.left }}
                       onClose={() => setPopoverOpenFor(null)}
                       onEdit={() => { setPopoverOpenFor(null); navigate(`/employees/${emp.id}/edit`) }}
                       onView={() => navigate(`/employees/${emp.id}`)}

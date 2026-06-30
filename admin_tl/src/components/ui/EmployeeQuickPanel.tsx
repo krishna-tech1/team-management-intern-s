@@ -6,12 +6,13 @@ import { Edit, Eye, UserMinus } from "lucide-react"
 
 import { useEffect, useRef } from "react"
 
-export default function EmployeeQuickPanel({ employee, onClose, onEdit, onView, onDeactivate }: {
+export default function EmployeeQuickPanel({ employee, onClose, onEdit, onView, onDeactivate, style }: {
   employee: Employee
   onClose: () => void
   onEdit: () => void
   onView: () => void
   onDeactivate: () => void
+  style?: React.CSSProperties
 }) {
   const ref = useRef<HTMLDivElement | null>(null)
 
@@ -25,8 +26,18 @@ export default function EmployeeQuickPanel({ employee, onClose, onEdit, onView, 
     return () => document.removeEventListener('mousedown', onDoc)
   }, [onClose])
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   return (
-    <div ref={ref} className="absolute right-0 top-12 z-50 w-80 rounded-md bg-white shadow-lg border border-line" style={{ paddingRight: 8 }}>
+    <div ref={ref} className="fixed z-50 w-80 rounded-md bg-white shadow-lg border border-line" style={{ ...style, paddingRight: 8 }}>
       <div className="px-5 py-5">
         <div className="flex items-center gap-3">
           <Avatar name={employee.name} src={employee.avatar} size={48} />

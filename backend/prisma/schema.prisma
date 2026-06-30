@@ -365,6 +365,7 @@ model Incentive {
   employee    Employee @relation(fields: [employeeId], references: [id])
   amount      Float
   month       String   // e.g., "YYYY-MM"
+  status      String   @default("PENDING")
   createdAt   DateTime @default(now())
 
   @@index([employeeId])

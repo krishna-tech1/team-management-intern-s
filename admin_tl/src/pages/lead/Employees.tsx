@@ -22,6 +22,7 @@ export default function LeadEmployees() {
   const [error, setError] = useState<string | null>(null)
   
   const [popoverOpenFor, setPopoverOpenFor] = useState<string | null>(null)
+  const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [advancedFilters, setAdvancedFilters] = useState<any>({})
   const [dataVersion, setDataVersion] = useState(0)
@@ -289,12 +290,12 @@ export default function LeadEmployees() {
             <div className="overflow-x-auto px-6 pb-6">
               <table className="w-full table-fixed" style={{ tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: '42%' }} />
+                  <col style={{ width: '38%' }} />
                   <col style={{ width: '16%' }} />
                   <col style={{ width: '16%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '8%' }} />
                   <col style={{ width: '10%' }} />
-                  <col style={{ width: '8%' }} />
-                  <col style={{ width: '8%' }} />
                 </colgroup>
                 <thead>
                   <tr className="border-y border-line text-left text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: 'var(--color-line-soft)', color: 'var(--color-ink-soft)' }}>
@@ -303,7 +304,7 @@ export default function LeadEmployees() {
                     <th className="px-6 py-4">Role</th>
                     <th className="px-6 py-4">Status</th>
                     <th onClick={() => { setSortKey('score'); setSortDir((d) => d === 'asc' ? 'desc' : 'asc'); setPage(1) }} className="px-6 py-4 cursor-pointer">Score</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
+                    <th className="pl-2 pr-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -328,11 +329,31 @@ export default function LeadEmployees() {
                           {emp.score}
                         </div>
                       </td>
-                      <td className="px-6 py-4 relative" onClick={(e) => e.stopPropagation()}>
+                      <td className="pl-2 pr-6 py-4 relative" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end">
                           <button
-                            ref={kebabRef}
-                            onClick={() => setPopoverOpenFor((p) => (p === emp.id ? null : emp.id))}
+                            onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const panelWidth = 320;
+                              const panelHeight = 220;
+                              const viewportHeight = window.innerHeight;
+                              const viewportWidth = window.innerWidth;
+                              
+                              let top = rect.bottom;
+                              if (viewportHeight - rect.bottom < panelHeight && rect.top > panelHeight) {
+                                top = rect.top - panelHeight;
+                              }
+                              
+                              let left = rect.right - panelWidth;
+                              if (left < 16) {
+                                left = 16;
+                              } else if (left + panelWidth > viewportWidth - 16) {
+                                left = viewportWidth - panelWidth - 16;
+                              }
+
+                              setPopoverCoords({ top, left });
+                              setPopoverOpenFor((p) => p === emp.id ? null : emp.id);
+                            }}
                             className="flex h-8 w-8 items-center justify-center rounded-md text-ink-soft hover:bg-line-soft"
                           >
                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -345,13 +366,14 @@ export default function LeadEmployees() {
               </table>
             </div>
 
-            {popoverOpenFor && (
+            {popoverOpenFor && popoverCoords && (
               (() => {
                 const emp = employeesList.find((e) => e.id === popoverOpenFor)
                 if (!emp) return null
                 return (
                   <EmployeeQuickPanel
                     employee={emp}
+                    style={{ top: popoverCoords.top, left: popoverCoords.left }}
                     onClose={() => setPopoverOpenFor(null)}
                     onEdit={() => { setPopoverOpenFor(null); navigate(`/lead/employees/${emp.id}/edit`) }}
                     onView={() => navigate(`/lead/employees/${emp.id}`)}

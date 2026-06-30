@@ -31,14 +31,14 @@ export default function TaskAssigning() {
         // Filter tasks that are unassigned (or don't have an assigned employee)
         const unassigned = allTasks.filter((t: any) => !t.employee)
         setTasksList(unassigned)
-        
+
         // Map employees to workload load indicator
         const mappedEmps = emps.map((e: any) => {
           const load = Math.min(100, Math.max(10, Math.floor(Math.random() * 40 + 20))) // mock variation
           let color = '#2bb673'
           if (load > 80) color = '#e2566b'
           else if (load > 40) color = '#e0941a'
-          
+
           return {
             id: e.id,
             name: e.name,
@@ -55,6 +55,20 @@ export default function TaskAssigning() {
         setLoading(false)
       })
   }, [dataVersion])
+
+  // Listen for cross-page data change events so this page auto-refreshes
+  // when Dashboard or another page creates/updates/assigns a task
+  useEffect(() => {
+    function onExternalChange() {
+      setDataVersion((v) => v + 1)
+    }
+    window.addEventListener('tasks:changed', onExternalChange)
+    window.addEventListener('employees:changed', onExternalChange)
+    return () => {
+      window.removeEventListener('tasks:changed', onExternalChange)
+      window.removeEventListener('employees:changed', onExternalChange)
+    }
+  }, [])
 
   const handleExportProgress = () => {
     const rows = tasksList.map((t) => ({
@@ -93,10 +107,7 @@ export default function TaskAssigning() {
     if (!assigningTask) return
 
     try {
-      await taskService.updateTask(assigningTask.id, {
-        ...assigningTask,
-        employeeId: empId
-      })
+      await taskService.assignTask(assigningTask.id, empId)
 
       // Log Activity locally
       setActivityLogs((prev) => [
@@ -109,6 +120,11 @@ export default function TaskAssigning() {
       ])
 
       toast({ message: `Successfully assigned "${assigningTask.name}" to ${empName}!`, type: 'success' })
+
+      // Notify other pages (Dashboard, Employees) to refresh their data
+      window.dispatchEvent(new CustomEvent('tasks:changed'))
+      window.dispatchEvent(new CustomEvent('employees:changed'))
+
       setDataVersion((v) => v + 1)
       setAssigningTask(null)
     } catch (err: any) {

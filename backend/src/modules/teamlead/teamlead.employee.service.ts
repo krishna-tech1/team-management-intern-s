@@ -33,6 +33,13 @@ export const getTLEmployees = async (
         id: true, employeeCode: true, firstName: true, lastName: true,
         email: true, phone: true, department: true, designation: true,
         status: true, isActive: true, joiningDate: true,
+        taskAssignments: {
+          select: {
+            task: {
+              select: { id: true, title: true, status: true, priority: true }
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
     }),
@@ -54,6 +61,13 @@ export const getTLEmployeeById = async (userId: number, employeeId: number) => {
         where: { isDeleted: false },
         select: { id: true, title: true, status: true, priority: true, dueDate: true },
         orderBy: { createdAt: 'desc' },
+      },
+      taskAssignments: {
+        include: {
+          task: {
+            include: { client: true }
+          }
+        }
       },
       attendances: { orderBy: { createdAt: 'desc' }, take: 30 },
       leaveRequests: { orderBy: { createdAt: 'desc' }, take: 10 },

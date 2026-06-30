@@ -1,5 +1,6 @@
 import prisma from '../../config/prisma';
 import { getTeamMemberIds } from './teamlead.helper';
+import { createAuditLog } from '../auditlogs/auditlog.service';
 
 export const getTLTasks = async (
   userId: number,
@@ -94,6 +95,9 @@ export const createTLTask = async (
     });
   }
 
+  // Log to AuditLog
+  await createAuditLog('Task created', `teamlead:${userId}`, 'Task', task.id);
+
   return task;
 };
 
@@ -145,6 +149,9 @@ export const updateTLTask = async (
     }
   }
 
+  // Log to AuditLog
+  await createAuditLog('Task updated', `teamlead:${userId}`, 'Task', taskId);
+
   return updated;
 };
 
@@ -155,6 +162,10 @@ export const deleteTLTask = async (userId: number, taskId: number) => {
   });
   if (!task) throw new Error('Task not found or not accessible');
   await prisma.task.update({ where: { id: taskId }, data: { isDeleted: true } });
+  
+  // Log to AuditLog
+  await createAuditLog('Task deleted', `teamlead:${userId}`, 'Task', taskId);
+
   return { message: 'Task deleted successfully' };
 };
 
@@ -176,6 +187,9 @@ export const assignTaskToEmployee = async (
 
   await prisma.taskAssignment.deleteMany({ where: { taskId } });
   await prisma.taskAssignment.create({ data: { taskId, employeeId } });
+
+  // Log to AuditLog
+  await createAuditLog('Task updated', `teamlead:${userId}`, 'Task', taskId);
 
   return updated;
 };

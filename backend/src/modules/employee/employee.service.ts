@@ -1,6 +1,7 @@
 import prisma from '../../config/prisma';
 import { comparePassword, hashPassword } from '../../utils/password.utils';
 import { TaskStatus, AttendanceStatus } from '@prisma/client';
+import { createAuditLog } from '../auditlogs/auditlog.service';
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -278,6 +279,9 @@ export const updateEmployeeTaskStatus = async (
       },
     }),
   ]);
+
+  // Log to AuditLog
+  await createAuditLog('Task status updated', `employee:${employee.id}`, 'Task', taskId);
 
   return updatedTask;
 };

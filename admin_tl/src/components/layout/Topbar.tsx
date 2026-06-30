@@ -1,4 +1,4 @@
-import { Bell, HelpCircle, Search, Settings, Menu } from "lucide-react"
+import { Bell, HelpCircle, Search, Settings, Menu, X } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 import { Avatar } from "@/components/ui/Avatar"
 import { Card } from "@/components/ui/Card"
@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/Button"
 import Toasts, { toast } from "@/components/ui/Toast"
 import ConfirmModal from "@/components/ui/ConfirmModal"
 import { useNavigate } from "react-router-dom"
-import { employees } from '@/data/employees'
-import { clients } from '@/data/clients'
-import { tasks } from '@/data/tasks'
 import { useAuth } from "@/context/AuthContext"
 
 export function Topbar({
@@ -38,31 +35,35 @@ export function Topbar({
 
   const [notifOpen, setNotifOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
   const [resultsOpen, setResultsOpen] = useState(false)
-  const [results, setResults] = useState<any[]>([])
+  const [searchActive, setSearchActive] = useState(false)
 
   const notifRef = useRef<HTMLDivElement | null>(null)
   const profileRef = useRef<HTMLDivElement | null>(null)
-  const settingsRef = useRef<HTMLDivElement | null>(null)
   const helpRef = useRef<HTMLDivElement | null>(null)
   const supportRef = useRef<HTMLDivElement | null>(null)
+  const searchRef = useRef<HTMLDivElement | null>(null)
 
+  // Outside-click handler — closes any open panel when clicking outside it
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       const t = e.target as Node
       if (notifOpen && notifRef.current && !notifRef.current.contains(t)) setNotifOpen(false)
       if (profileOpen && profileRef.current && !profileRef.current.contains(t)) setProfileOpen(false)
-      if (settingsOpen && settingsRef.current && !settingsRef.current.contains(t)) setSettingsOpen(false)
       if (helpOpen && helpRef.current && !helpRef.current.contains(t)) setHelpOpen(false)
       if (supportOpen && supportRef.current && !supportRef.current.contains(t)) setSupportOpen(false)
+      if (resultsOpen && searchRef.current && !searchRef.current.contains(t)) {
+        setResultsOpen(false)
+        setSearchActive(false)
+      }
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
-  }, [notifOpen, profileOpen, settingsOpen, helpOpen, supportOpen])
+  }, [notifOpen, profileOpen, helpOpen, supportOpen, resultsOpen])
 
   const sampleNotifications = [
     { id: 'n1', title: 'GSTR-3B due', desc: 'GSTR-3B filing due for Acme Global', time: '2h', target: { type: 'task', id: 'TSK-5001' }, read: false },
@@ -70,10 +71,32 @@ export function Topbar({
     { id: 'n3', title: 'Payment Received', desc: 'Invoice #INV-102 paid', time: '3d', target: { type: 'client', id: 'CL-2001' }, read: false },
   ]
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value
+    setSearchValue(v)
+    onInput(e)
+
+    if (!v.trim()) {
+      setResultsOpen(false)
+      setSearchActive(false)
+      return
+    }
+    setSearchActive(true)
+    setResultsOpen(true)
+  }
+
+  const clearSearch = () => {
+    setSearchValue('')
+    setResultsOpen(false)
+    setSearchActive(false)
+    window.dispatchEvent(new CustomEvent('app:search', { detail: '' }))
+    inputRef.current?.focus()
+  }
+
   return (
     <>
     <header style={{ height: 'var(--topbar-height)' }} className="sticky top-0 z-20 flex items-center gap-4 border-b border-line bg-canvas px-4 md:px-10">
-        <div className="relative flex-1">
+        <div ref={searchRef} className="relative flex-1">
         <button onClick={() => onOpenSidebar && onOpenSidebar()} className="mr-3 md:hidden text-ink-soft">
           <Menu className="h-5 w-5" />
         </button>
@@ -83,55 +106,58 @@ export function Topbar({
         <input
           type="text"
           placeholder={searchPlaceholder}
-          onChange={(e) => {
-            onInput(e)
-            const v = e.target.value
-            if (!v) {
-              setResults([])
-              setResultsOpen(false)
-              return
+          value={searchValue}
+          onChange={handleSearchChange}
+          onFocus={() => {
+            if (searchValue.trim()) {
+              setResultsOpen(true)
+              setSearchActive(true)
             }
-            const q = v.trim().toLowerCase()
-            const empMatches = employees.filter((x) => x.name.toLowerCase().includes(q) || x.id.toLowerCase().includes(q)).slice(0,4).map((x) => ({ type: 'employee', id: x.id, title: x.name, subtitle: x.designation }))
-            const clientMatches = clients.filter((c) => c.company.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)).slice(0,3).map((c) => ({ type: 'client', id: c.id, title: c.company, subtitle: c.contactPerson }))
-            const taskMatches = tasks.filter((t) => t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q)).slice(0,3).map((t) => ({ type: 'task', id: t.id, title: t.name, subtitle: t.client }))
-            const pages = [
-              { type: 'page', id: 'analytics', title: 'Analytics', route: '/analytics' },
-              { type: 'page', id: 'incentives', title: 'Incentives', route: '/incentives' },
-              { type: 'page', id: 'tasks', title: 'Tasks', route: '/tasks' },
-              { type: 'page', id: 'clients', title: 'Clients', route: '/clients' },
-            ]
-            const pageMatches = pages.filter(p => p.title.toLowerCase().includes(q)).slice(0,3).map(p => ({ type: 'page', id: p.id, title: p.title, route: p.route }))
-            const combined = [...empMatches, ...taskMatches, ...clientMatches]
-            const all = [...pageMatches, ...combined]
-            setResults(all)
-            setResultsOpen(all.length > 0)
           }}
-          className="h-11 w-full rounded-lg border border-line bg-surface pl-12 pr-4 text-base text-ink placeholder:text-ink-muted focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/20"
+          className="h-11 w-full rounded-lg border border-line bg-surface pl-12 pr-10 text-base text-ink placeholder:text-ink-muted focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/20"
             style={{ paddingTop: 10, paddingBottom: 10, fontSize: 15 }}
           ref={inputRef}
         />
-        {resultsOpen && (
+        {searchValue && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink transition-colors"
+            aria-label="Clear search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+
+        {/* Search dropdown — shows guidance/no-results state */}
+        {resultsOpen && searchActive && (
           <div className="absolute left-0 right-0 mt-2 z-50">
             <Card>
-              <div className="p-2">
-                {results.length === 0 ? (
-                  <div className="p-2 text-sm text-ink-muted">No results found</div>
-                ) : results.map((r) => (
-                  <div key={`${r.type}-${r.id}`} className="p-2 rounded-md hover:bg-surface-muted cursor-pointer" onClick={() => {
-                    setResultsOpen(false)
-                    try { window.dispatchEvent(new CustomEvent('app:search', { detail: '' })) } catch {}
-                    const isLead = window.location.pathname.startsWith('/lead') || userRole === 'Team Lead'
-                    if (r.type === 'employee') navigate(isLead ? `/lead/employees/${r.id}` : `/employees/${r.id}`)
-                    if (r.type === 'client') navigate(isLead ? `/lead/clients/${r.id}` : `/clients/${r.id}`)
-                    if (r.type === 'task') navigate(isLead ? `/lead/tasks` : `/tasks/${r.id}`)
-                    if (r.type === 'page') navigate(isLead ? `/lead/${r.id}` : r.route)
-                    if (r.type === 'incentive') navigate(isLead ? `/lead/incentives` : '/incentives')
-                  }}>
-                    <div className="text-sm font-bold">{r.title}</div>
-                    <div className="text-xs text-ink-muted">{r.subtitle}</div>
-                  </div>
-                ))}
+              <div className="p-3">
+                <div className="flex items-center gap-2 text-xs text-ink-muted mb-2 pb-2 border-b border-line">
+                  <Search className="h-3.5 w-3.5" />
+                  <span>Results are filtered on the active page</span>
+                </div>
+                <div className="py-2 px-1 text-sm text-ink-soft">
+                  Searching for <strong className="text-ink">"{searchValue}"</strong> — scroll down to see matching results on the current page.
+                </div>
+                <div className="mt-2 pt-2 border-t border-line flex gap-2">
+                  {[
+                    { label: 'Go to Employees', route: userRole === 'Team Lead' ? '/lead/employees' : '/employees' },
+                    { label: 'Go to Tasks', route: userRole === 'Team Lead' ? '/lead/tasks' : '/tasks' },
+                    { label: 'Go to Clients', route: userRole === 'Team Lead' ? '/lead/clients' : '/clients' },
+                  ].map((link) => (
+                    <button
+                      key={link.route}
+                      className="text-xs font-semibold px-2 py-1 rounded border border-line hover:bg-surface-muted transition-colors"
+                      onClick={() => {
+                        navigate(link.route)
+                        setResultsOpen(false)
+                      }}
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </Card>
           </div>
@@ -139,39 +165,58 @@ export function Topbar({
       </div>
 
       <div className="ml-auto hidden md:flex items-center gap-4">
-        <div className="relative">
-          <button onClick={() => setNotifOpen((s) => !s)} className="text-ink-soft transition-colors hover:text-ink" aria-label="Notifications">
+        {/* Notifications */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => {
+              setNotifOpen((s) => !s)
+              setHelpOpen(false)
+              setSupportOpen(false)
+            }}
+            className="text-ink-soft transition-colors hover:text-ink"
+            aria-label="Notifications"
+          >
             <Bell className="h-5 w-5" />
           </button>
           {notifOpen && (
-            <div ref={notifRef} className="absolute right-0 mt-2 w-80 z-50">
+            <div className="absolute right-0 mt-2 w-80 z-50">
               <Card>
                 <div className="p-3">
-                  <div className="text-sm font-semibold">Notifications</div>
-                          <div className="mt-2 space-y-2">
-                            {sampleNotifications.map((n) => (
-                              <div key={n.id} className={`rounded-md p-2 hover:bg-surface-muted flex justify-between ${n.read ? 'opacity-60' : ''}`}>
-                                <div onClick={() => {
-                                  // navigate based on target
-                                  if (n.target) {
-                                    if (n.target.type === 'employee') navigate(`/employees/${n.target.id}`)
-                                    if (n.target.type === 'client') navigate(`/clients/${n.target.id}`)
-                                    if (n.target.type === 'task') navigate(`/tasks/${n.target.id}`)
-                                  }
-                                  n.read = true
-                                  setNotifOpen(false)
-                                  toast({ type: 'info', message: 'Opened notification' })
-                                }} style={{ cursor: 'pointer' }}>
-                                  <div className="text-sm font-bold">{n.title}</div>
-                                  <div className="text-xs text-ink-muted">{n.desc}</div>
-                                  <div className="text-xs text-ink-soft mt-1">{n.time}</div>
-                                </div>
-                                {!n.read ? <div className="text-xs text-amber" style={{ marginLeft: 8 }}>●</div> : null}
-                              </div>
-                            ))}
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm font-semibold">Notifications</div>
+                    <button
+                      onClick={() => setNotifOpen(false)}
+                      className="text-ink-muted hover:text-ink transition-colors rounded p-0.5"
+                      aria-label="Close notifications"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    {sampleNotifications.length === 0 ? (
+                      <div className="py-4 text-center text-sm text-ink-muted">No new notifications</div>
+                    ) : (
+                      sampleNotifications.map((n) => (
+                        <div key={n.id} className={`rounded-md p-2 hover:bg-surface-muted flex justify-between ${n.read ? 'opacity-60' : ''}`}>
+                          <div onClick={() => {
+                            if (n.target) {
+                              const isLead = window.location.pathname.startsWith('/lead') || userRole === 'Team Lead'
+                              if (n.target.type === 'employee') navigate(isLead ? `/lead/employees/${n.target.id}` : `/employees/${n.target.id}`)
+                              if (n.target.type === 'client') navigate(isLead ? `/lead/clients/${n.target.id}` : `/clients/${n.target.id}`)
+                              if (n.target.type === 'task') navigate(isLead ? `/lead/tasks` : `/tasks/${n.target.id}`)
+                            }
+                            n.read = true
+                            setNotifOpen(false)
+                            toast({ type: 'info', message: 'Opened notification' })
+                          }} style={{ cursor: 'pointer' }}>
+                            <div className="text-sm font-bold">{n.title}</div>
+                            <div className="text-xs text-ink-muted">{n.desc}</div>
+                            <div className="text-xs text-ink-soft mt-1">{n.time}</div>
                           </div>
-                  <div className="mt-3 text-right">
-                    <Button variant="ghost" onClick={() => setNotifOpen(false)}>Close</Button>
+                          {!n.read ? <div className="text-xs text-amber" style={{ marginLeft: 8 }}>●</div> : null}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </Card>
@@ -179,24 +224,51 @@ export function Topbar({
           )}
         </div>
 
+        {/* Settings icon */}
         <div className="relative">
-          <button className="text-ink-soft cursor-default" aria-label="Settings" style={{ pointerEvents: 'none' }}>
+          <button
+            onClick={() => {
+              if (userRole === 'Team Lead') {
+                navigate('/lead/settings')
+              } else if (userRole === 'Super Admin' || userRole === 'Admin' || userRole === 'Global Access') {
+                navigate('/settings')
+              }
+            }}
+            className="text-ink-soft hover:text-ink transition-colors"
+            aria-label="Settings"
+          >
             <Settings className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="relative">
-          <button onClick={() => setHelpOpen((s) => !s)} className="text-ink-soft transition-colors hover:text-ink" aria-label="Help">
+        {/* Help */}
+        <div className="relative" ref={helpRef}>
+          <button
+            onClick={() => {
+              setHelpOpen((s) => !s)
+              setNotifOpen(false)
+              setSupportOpen(false)
+            }}
+            className="text-ink-soft transition-colors hover:text-ink"
+            aria-label="Help"
+          >
             <HelpCircle className="h-5 w-5" />
           </button>
           {helpOpen && (
-            <div ref={helpRef} className="absolute right-0 mt-2 w-96 z-50">
-              <div className="fixed inset-0 z-40" />
+            <div className="absolute right-0 mt-2 w-96 z-50">
               <Card>
                 <div className="p-4">
-                  <div className="text-lg font-semibold">Help</div>
+                  <div className="flex items-start justify-between">
+                    <div className="text-lg font-semibold">Help</div>
+                    <button
+                      onClick={() => setHelpOpen(false)}
+                      className="text-ink-muted hover:text-ink transition-colors rounded p-0.5 -mt-0.5"
+                      aria-label="Close help"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                   <div className="mt-2 text-sm text-ink-muted">No help page found. This is a placeholder.</div>
-                  <div className="mt-3 text-right"><Button variant="ghost" onClick={() => setHelpOpen(false)}>Close</Button></div>
                 </div>
               </Card>
             </div>
@@ -204,24 +276,45 @@ export function Topbar({
         </div>
 
         <span className="h-6 w-px bg-line" />
-        <div className="relative">
-          <button onClick={() => setSupportOpen(true)} className="text-sm font-semibold text-gold-dark">Support</button>
+
+        {/* Support */}
+        <div className="relative" ref={supportRef}>
+          <button
+            onClick={() => {
+              setSupportOpen((s) => !s)
+              setNotifOpen(false)
+              setHelpOpen(false)
+            }}
+            className="text-sm font-semibold text-gold-dark"
+          >
+            Support
+          </button>
           {supportOpen && (
-            <div ref={supportRef} className="absolute right-0 mt-2 w-80 z-50">
-              <div className="fixed inset-0 z-40" />
+            <div className="absolute right-0 mt-2 w-80 z-50">
               <Card>
                 <div className="p-4">
-                  <div className="text-lg font-semibold">Support</div>
-                  <div className="mt-2 text-sm">Email: support@complianceos.com</div>
-                  <div className="text-sm">Contact: +91 1800 123 456</div>
-                  <div className="mt-3 text-right"><Button variant="ghost" onClick={() => setSupportOpen(false)}>Close</Button></div>
+                  <div className="flex items-start justify-between">
+                    <div className="text-lg font-semibold">Support</div>
+                    <button
+                      onClick={() => setSupportOpen(false)}
+                      className="text-ink-muted hover:text-ink transition-colors rounded p-0.5 -mt-0.5"
+                      aria-label="Close support"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    <div className="text-sm">Email: <span className="font-medium">support@complianceos.com</span></div>
+                    <div className="text-sm">Contact: <span className="font-medium">+91 1800 123 456</span></div>
+                  </div>
                 </div>
               </Card>
             </div>
           )}
         </div>
 
-        <div className="relative">
+        {/* Profile */}
+        <div className="relative" ref={profileRef}>
           <div onClick={() => setProfileOpen((s) => !s)} className="flex items-center gap-3 pl-1 cursor-pointer">
             <div className="text-right">
               <p className="text-sm font-bold leading-tight text-ink">{userName}</p>
@@ -230,14 +323,30 @@ export function Topbar({
             <Avatar name={userName} size={38} className="ring-2 ring-amber/40" />
           </div>
           {profileOpen && (
-            <div ref={profileRef} className="absolute right-0 mt-2 w-40 z-50">
+            <div className="absolute right-0 mt-2 w-44 z-50">
               <Card>
                 <div className="p-2">
-                  <button className="w-full text-left px-3 py-2 text-sm" onClick={() => { setProfileOpen(false); if (userRole === 'Team Lead') navigate('/lead/settings'); else alert('Profile placeholder') }}>Profile</button>
-                  {userRole === 'Team Lead' && (
-                    <button className="w-full text-left px-3 py-2 text-sm" onClick={() => { setProfileOpen(false); navigate('/lead/settings') }}>Settings</button>
-                  )}
-                  <button className="w-full text-left px-3 py-2 text-sm" onClick={() => setConfirmOpen(true)}>Logout</button>
+                  {/* Profile */}
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm rounded hover:bg-surface-muted transition-colors"
+                    onClick={() => {
+                      setProfileOpen(false)
+                      if (userRole === 'Team Lead') navigate('/lead/settings')
+                      else alert('Profile placeholder')
+                    }}
+                  >
+                    Profile
+                  </button>
+                  {/* Logout — Settings removed for Team Lead per requirements */}
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm rounded hover:bg-surface-muted transition-colors text-red-600"
+                    onClick={() => {
+                      setProfileOpen(false)
+                      setConfirmOpen(true)
+                    }}
+                  >
+                    Logout
+                  </button>
                 </div>
               </Card>
             </div>

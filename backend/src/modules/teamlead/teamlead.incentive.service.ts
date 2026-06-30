@@ -17,18 +17,18 @@ export const getTLIncentives = async (userId: number, page = 1, limit = 10) => {
     }),
     prisma.incentive.count({ where: { employeeId: { in: memberIds } } }),
     prisma.incentive.aggregate({
-      where: { employeeId: { in: memberIds } },
+      where: { employeeId: { in: memberIds }, status: 'APPROVED' },
       _sum: { amount: true },
     }),
   ]);
 
   // Monthly distribution
-  const allIncentives = await prisma.incentive.findMany({
-    where: { employeeId: { in: memberIds } },
+  const approvedIncentives = await prisma.incentive.findMany({
+    where: { employeeId: { in: memberIds }, status: 'APPROVED' },
     select: { amount: true, month: true },
   });
   const monthlyMap: Record<string, number> = {};
-  allIncentives.forEach((i) => {
+  approvedIncentives.forEach((i) => {
     monthlyMap[i.month] = (monthlyMap[i.month] || 0) + i.amount;
   });
   const monthlyDistribution = Object.entries(monthlyMap)
@@ -38,7 +38,7 @@ export const getTLIncentives = async (userId: number, page = 1, limit = 10) => {
   // Leaderboard via groupBy
   const grouped = await prisma.incentive.groupBy({
     by: ['employeeId'],
-    where: { employeeId: { in: memberIds } },
+    where: { employeeId: { in: memberIds }, status: 'APPROVED' },
     _sum: { amount: true },
     orderBy: { _sum: { amount: 'desc' } },
   });
@@ -96,4 +96,27 @@ export const calculateTLIncentives = async (userId: number, month: string) => {
   }
 
   return { calculated: created.length, records: created };
+};
+
+export const updateTLIncentiveStatus = async (
+  userId: number,
+  incentiveId: number,
+  status: string
+) => {
+  const memberIds = await getTeamMemberIds(userId);
+
+  const incentive = await prisma.incentive.findFirst({
+    where: {
+      id: incentiveId,
+      employeeId: { in: memberIds },
+    },
+  });
+  if (!incentive) throw new Error('Incentive record not found or access denied');
+
+  const updated = await prisma.incentive.update({
+    where: { id: incentiveId },
+    data: { status },
+  });
+
+  return updated;
 };

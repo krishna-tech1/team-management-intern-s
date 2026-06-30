@@ -49,5 +49,9 @@ export const incentiveService = {
 
   calculateTLIncentives: async (month: string): Promise<any> => {
     return apiClient.post('/teamlead/incentives/calculate', { month });
+  },
+
+  updateTLIncentiveStatus: async (id: string, status: string): Promise<any> => {
+    return apiClient.put(`/teamlead/incentives/${id}`, { status });
   }
 };

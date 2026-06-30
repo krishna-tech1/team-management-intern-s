@@ -147,7 +147,7 @@ export function OnboardEmployeeView() {
   }
 
   return (
-    <div>
+    <div className="pb-24">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-extrabold" style={{ lineHeight: 1 }}>Employee Onboarding</h1>
@@ -328,8 +328,6 @@ export function OnboardEmployeeView() {
               </div>
             </div>
           </Card>
-
-          {/* KYC & Documents moved to right panel per design */}
         </div>
 
         <div>
@@ -393,11 +391,9 @@ export function OnboardEmployeeView() {
         <Button variant="ghost" onClick={clearDraft}>Delete Draft</Button>
       </div>
 
-      <div style={{ position: 'fixed', right: 24, bottom: 24 }}>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate('/employees')}>Cancel Onboarding</Button>
-          <Button variant="primary" onClick={async ()=>{ if (!validateAll()) return; await submit() }}>Save & Add Employee</Button>
-        </div>
+      <div className="fixed bottom-0 left-0 md:left-[var(--sidebar-width)] right-0 z-30 bg-canvas border-t border-line px-6 py-4 flex justify-end gap-3">
+        <Button variant="ghost" onClick={() => navigate('/employees')}>Cancel Onboarding</Button>
+        <Button variant="primary" onClick={async ()=>{ if (!validateAll()) return; await submit() }}>Save & Add Employee</Button>
       </div>
     </div>
   )

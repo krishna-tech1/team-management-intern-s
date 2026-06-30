@@ -42,9 +42,7 @@ export default function Reports() {
 
   const loadAnalytics = async (showToast = false) => {
     try {
-      if (!showToast) {
-        setLoading(true);
-      }
+      setLoading(true);
       setError(null);
       const res = await analyticsService.getAnalyticsRows();
       setAnalyticsData(res);
@@ -158,7 +156,18 @@ export default function Reports() {
       };
     }
 
-    const points = trend.slice(-10); // Display up to 10 points
+    let points = [...trend].slice(-10); // Display up to 10 points
+    if (points.length === 1) {
+      const [year, month] = points[0].month.split('-');
+      const prevDate = new Date(Number(year), Number(month) - 2, 1);
+      const prevMonthStr = prevDate.toISOString().slice(0, 7);
+      points.unshift({
+        month: prevMonthStr,
+        rate: 0,
+        total: 0,
+        completed: 0
+      });
+    }
     const N = points.length;
     const stepX = N > 1 ? 1000 / (N - 1) : 1000;
 
@@ -410,7 +419,6 @@ export default function Reports() {
             <div className="analytics-table-card">
               <div className="analytics-card-header-row">
                 <h3 className="analytics-card-title">Top Performing Employees</h3>
-                <button className="analytics-link-btn" onClick={() => navigate('/lead/incentives')}>Full Leaderboard</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="analytics-table">

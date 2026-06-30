@@ -96,7 +96,7 @@ export default function AdminEmployeeDetail() {
               </div>
               <p className="text-sm text-ink-muted mt-1">{emp.designation || 'Associate'}</p>
               <div className="mt-3">
-                <Button variant="primary" onClick={() => navigate(`/employees/${emp.id}/edit`)} style={{ backgroundColor: 'var(--color-amber)', borderColor: 'var(--color-amber)' }}>Edit Details</Button>
+                <Button variant="primary" onClick={() => navigate(window.location.pathname.startsWith('/lead') ? `/lead/employees/${emp.id}/edit` : `/employees/${emp.id}/edit`)} style={{ backgroundColor: 'var(--color-amber)', borderColor: 'var(--color-amber)' }}>Edit Details</Button>
               </div>
             </div>
           </div>

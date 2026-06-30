@@ -117,9 +117,17 @@ export const taskService = {
     return apiClient.delete(`${getPrefix()}/tasks/${id}`);
   },
   assignTask: async (taskId: string, employeeId: string | null): Promise<Task> => {
-    const raw = await apiClient.post(`${getPrefix()}/tasks/${taskId}/assign`, { 
-      employeeId: employeeId ? parseInt(employeeId) : null 
-    });
-    return mapTask(raw);
+    const prefix = getPrefix();
+    if (prefix === '/admin') {
+      const raw = await apiClient.put(`/admin/tasks/${taskId}`, {
+        assignedEmployeeId: employeeId ? parseInt(employeeId) : null
+      });
+      return mapTask(raw);
+    } else {
+      const raw = await apiClient.post(`/teamlead/tasks/${taskId}/assign`, { 
+        employeeId: employeeId ? parseInt(employeeId) : null 
+      });
+      return mapTask(raw);
+    }
   }
 };

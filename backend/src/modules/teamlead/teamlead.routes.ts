@@ -17,6 +17,7 @@ import {
   analyticsController,
   getIncentivesController,
   calculateIncentivesController,
+  updateIncentiveController,
   getNotificationsController,
   createNotificationController,
   markReadController,
@@ -58,6 +59,7 @@ router.get('/teamlead/analytics', ...tl, analyticsController);
 // Incentives
 router.get('/teamlead/incentives', ...tl, getIncentivesController);
 router.post('/teamlead/incentives/calculate', ...tl, calculateIncentivesController);
+router.put('/teamlead/incentives/:id', ...tl, updateIncentiveController);
 
 // Notifications
 router.get('/teamlead/notifications', ...tl, getNotificationsController);

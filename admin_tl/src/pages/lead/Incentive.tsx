@@ -55,14 +55,20 @@ export default function Incentive() {
   const [error, setError] = useState<string | null>(null)
   const [approvedIds, setApprovedIds] = useState<string[]>([])
 
-  const loadIncentives = async (showToast = false) => {
+  const loadIncentives = async (showToast = false, silent = false) => {
     try {
-      if (!showToast) {
+      if (!showToast && !silent) {
         setLoading(true);
       }
       setError(null);
       const res = await incentiveService.getTLIncentives();
       setIncentiveData(res);
+      
+      const approved = (res?.incentives || [])
+        .filter((inc: any) => inc.status === 'APPROVED')
+        .map((inc: any) => String(inc.id));
+      setApprovedIds(approved);
+
       if (showToast) {
         toast({ message: 'Incentive details synchronized', type: 'success' });
       }
@@ -117,16 +123,28 @@ export default function Incentive() {
 
   const barChartData = useMemo(() => {
     const dist = incentiveData?.monthlyDistribution || [];
-    if (dist.length === 0) {
-      return Array.from({ length: 6 }).map((_, i) => ({ month: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'][i], base: 10, highlight: false }));
+    
+    // We want to show a 6-month window ending at the current month
+    const result = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mStr = d.toISOString().slice(0, 7); // "YYYY-MM"
+      const match = dist.find((x: any) => x.month === mStr);
+      result.push({
+        monthStr: mStr,
+        monthLabel: d.toLocaleDateString('en-US', { month: 'short' }),
+        total: match ? match.total : 0
+      });
     }
-    const maxVal = Math.max(...dist.map((d: any) => d.total), 1);
-    return dist.slice(-6).map((d: any, idx: number) => {
-      const pct = Math.round((d.total / maxVal) * 100);
+
+    const maxVal = Math.max(...result.map((r: any) => r.total), 1);
+    return result.map((r: any, idx: number) => {
+      const pct = Math.round((r.total / maxVal) * 100);
       return {
-        month: formatMonthLabel(d.month),
+        month: r.monthLabel,
         base: Math.max(10, pct),
-        highlight: idx === Math.min(dist.length, 6) - 1
+        highlight: idx === 5 // highlight the current month (last column)
       };
     });
   }, [incentiveData]);
@@ -190,9 +208,14 @@ export default function Incentive() {
     });
   }, [incentiveData]);
 
-  const handleApprove = (id: string) => {
-    setApprovedIds((prev) => [...prev, id])
-    toast({ message: `Payout validation #${id} approved successfully`, type: 'success' })
+  const handleApprove = async (id: string) => {
+    try {
+      await incentiveService.updateTLIncentiveStatus(id, 'APPROVED');
+      toast({ message: `Payout validation #${id} approved successfully`, type: 'success' });
+      await loadIncentives(false, true); // silent refresh
+    } catch (err: any) {
+      toast({ message: err.message || 'Failed to approve payout', type: 'error' });
+    }
   }
 
   const handleCalculate = async () => {
@@ -230,13 +253,6 @@ export default function Incentive() {
           <p className="incentive-page-subtitle">Real-time tracking of quarterly payouts and individual performance metrics.</p>
         </div>
         <div className="incentive-header-actions">
-          <button className="btn-outline-dark" onClick={handleCalculate} disabled={calculating || loading}>
-            {calculating ? (
-              <span className="flex items-center gap-1"><Spinner size={12} /> Calculating...</span>
-            ) : (
-              'Calculate Incentives'
-            )}
-          </button>
           <button className="btn-outline-dark" onClick={handleExport} disabled={loading || leaderboardData.length === 0}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />

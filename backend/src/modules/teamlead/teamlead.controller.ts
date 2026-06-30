@@ -10,7 +10,7 @@ import {
 } from './teamlead.task.service';
 import { getTLTracking } from './teamlead.tracking.service';
 import { getTLAnalytics } from './teamlead.analytics.service';
-import { getTLIncentives, calculateTLIncentives } from './teamlead.incentive.service';
+import { getTLIncentives, calculateTLIncentives, updateTLIncentiveStatus } from './teamlead.incentive.service';
 import {
   getTLNotifications, createTLNotification, markNotificationRead,
 } from './teamlead.notification.service';
@@ -282,5 +282,16 @@ export const attendanceController = async (req: AuthRequest, res: Response) => {
     return successResponse(res, data, 'Attendance fetched');
   } catch (err: any) {
     return errorResponse(res, err.message, 500);
+  }
+};
+
+export const updateIncentiveController = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.body;
+    if (!status) return errorResponse(res, 'status is required', 400);
+    const data = await updateTLIncentiveStatus(getUserId(req), parseInt(req.params.id), status);
+    return successResponse(res, data, 'Incentive status updated');
+  } catch (err: any) {
+    return errorResponse(res, err.message, err.message.includes('not found') || err.message.includes('denied') ? 404 : 400);
   }
 };

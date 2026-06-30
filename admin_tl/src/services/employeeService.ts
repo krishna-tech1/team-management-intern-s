@@ -16,6 +16,12 @@ const getPrefix = () => {
 const mapEmployee = (emp: any): Employee => {
   const score = emp.performanceScore ?? 85;
   const incentiveEarned = score >= 90 ? 10000 : score >= 80 ? 5000 : 0;
+  
+  const tasks = emp.taskAssignments ? emp.taskAssignments.map((ta: any) => ta.task).filter(Boolean) : [];
+  const assignedTasksCount = emp.taskAssignments ? tasks.length : (emp.assignedTasks || 0);
+  const completedTasksCount = emp.taskAssignments ? tasks.filter((t: any) => t.status === 'COMPLETED').length : (emp.completedTasks || 0);
+  const pendingTasksCount = emp.taskAssignments ? tasks.filter((t: any) => t.status !== 'COMPLETED').length : (emp.pendingTasks || 0);
+
   return {
     id: String(emp.id),
     name: `${emp.firstName} ${emp.lastName}`,
@@ -31,9 +37,10 @@ const mapEmployee = (emp: any): Employee => {
     tasksClosed: emp.tasksClosed || 0,
     joiningDate: emp.joiningDate ? new Date(emp.joiningDate).toISOString().split('T')[0] : '',
     address: emp.address || '',
-    assignedTasks: emp.assignedTasks || 0,
-    completedTasks: emp.completedTasks || 0,
-    pendingTasks: emp.pendingTasks || 0,
+    assignedTasks: assignedTasksCount,
+    completedTasks: completedTasksCount,
+    pendingTasks: pendingTasksCount,
+    taskAssignments: emp.taskAssignments
   } as any;
 };
 

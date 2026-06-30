@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { downloadCsv } from '@/lib/utils'
 import { type Employee } from '@/data/employees'
@@ -8,7 +8,7 @@ import { clientService } from '@/services/clientService'
 import Spinner from '@/components/ui/Spinner'
 import { Avatar } from '@/components/ui/Avatar'
 import { toast } from '@/components/ui/Toast'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, RefreshCw } from 'lucide-react'
 import { taskService } from '@/services/taskService'
 
 interface AttentionRow {
@@ -27,8 +27,10 @@ export default function LeadDashboard() {
   const navigate = useNavigate()
   const [employeesList, setEmployeesList] = useState<Employee[]>([])
   const [clientsList, setClientsList] = useState<Client[]>([])
+  const [tasksList, setTasksList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [assigning, setAssigning] = useState(false)
 
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [selectedEmp, setSelectedEmp] = useState('')
@@ -36,21 +38,40 @@ export default function LeadDashboard() {
   const [taskName, setTaskName] = useState('')
   const [taskPriority, setTaskPriority] = useState('Standard')
 
-  useEffect(() => {
-    Promise.all([
-      employeeService.getEmployees(),
-      clientService.getClients()
-    ])
-      .then(([emps, clis]) => {
-        setEmployeesList(emps)
-        setClientsList(clis)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setError(err.message || 'Failed to load dashboard data')
-        setLoading(false)
-      })
+  // Centralised data fetch — called on mount and after any mutation
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const [emps, clis, tasks] = await Promise.all([
+        employeeService.getEmployees(),
+        clientService.getClients(),
+        taskService.getTasks(),
+      ])
+      setEmployeesList(emps)
+      setClientsList(clis)
+      setTasksList(tasks)
+      setError(null)
+    } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
+
+  // Re-fetch when other pages signal a data change
+  useEffect(() => {
+    function onTasksChanged() { fetchDashboardData() }
+    function onEmployeesChanged() { fetchDashboardData() }
+    window.addEventListener('tasks:changed', onTasksChanged)
+    window.addEventListener('employees:changed', onEmployeesChanged)
+    return () => {
+      window.removeEventListener('tasks:changed', onTasksChanged)
+      window.removeEventListener('employees:changed', onEmployeesChanged)
+    }
+  }, [fetchDashboardData])
 
   // Derive attention required list from actual employees
   const attentionRequiredData = useMemo<AttentionRow[]>(() => {
@@ -90,15 +111,37 @@ export default function LeadDashboard() {
     return employeesList.filter(e => e.status === 'Active').length
   }, [employeesList])
 
+  const assignedTasksCount = useMemo(() => tasksList.filter((t: any) => t.employee).length, [tasksList])
+  const unassignedTasksCount = useMemo(() => tasksList.filter((t: any) => !t.employee).length, [tasksList])
+
   const handleExport = () => {
-    const rows = attentionRequiredData.map((row) => ({
-      Employee: row.employee,
-      Role: row.role,
-      Status: row.status,
-      'Last Action': row.lastAction,
-      Performance: `${row.performance}%`,
-    }))
-    downloadCsv(rows, 'dashboard_overview_report.csv')
+    const totalIncentives = employeesList.reduce((sum, e) => sum + (e.incentiveEarned || 0), 0)
+    const averagePerformance = employeesList.length > 0 
+      ? Math.round(employeesList.reduce((sum, e) => sum + e.score, 0) / employeesList.length)
+      : 0
+
+    const sortedEmployees = [...employeesList].sort((a, b) => b.score - a.score)
+
+    const rows = sortedEmployees.map((emp, index) => {
+      const attentionRow = attentionRequiredData.find(a => a.id === emp.id)
+      return {
+        'Rank (Performance)': index + 1,
+        'Employee Name': emp.name,
+        'Designation': emp.designation,
+        'Status': emp.status,
+        'Performance Score (%)': `${emp.score}%`,
+        'Assigned Tasks': emp.assignedTasks,
+        'Incentives Earned (INR)': `₹${(emp.incentiveEarned || 0).toLocaleString()}`,
+        'Attention Required': attentionRow ? attentionRow.status : 'None',
+        'Total Team Incentives Forecast': index === 0 ? `₹${totalIncentives.toLocaleString()}` : '',
+        'Total Tasks Assigned': index === 0 ? assignedTasksCount : '',
+        'Total Tasks Unassigned': index === 0 ? unassignedTasksCount : '',
+        'Active Staff Count': index === 0 ? activeStaffCount : '',
+        'Average Performance Score': index === 0 ? `${averagePerformance}%` : '',
+      }
+    })
+
+    downloadCsv(rows, 'team_dashboard_analytics_report.csv')
   }
 
   const handleAction = (actionLabel: string, employeeId: string) => {
@@ -161,18 +204,16 @@ export default function LeadDashboard() {
               <div className="overview-stat-desc">Total team payouts</div>
             </div>
 
-            <div className="overview-stat-card cursor-pointer hover:border-amber transition-colors" onClick={() => navigate('/lead/analytics')}>
+            <div className="overview-stat-card cursor-pointer hover:border-amber transition-colors" onClick={() => navigate('/lead/tasks')}>
               <div className="overview-stat-header">
                 <div className="overview-stat-icon-box" style={{ background: '#e8f0fe', color: '#3d7cf0' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
                 </div>
-                <span className="overview-stat-trend-down">Stable</span>
+                <span className="overview-stat-trend-up">Live</span>
               </div>
-              <div className="overview-stat-label">COMPLETION RATE</div>
-              <div className="overview-stat-value">94.2%</div>
-              <div className="overview-progress-track">
-                <div className="overview-progress-fill" style={{ width: '94.2%' }} />
-              </div>
+              <div className="overview-stat-label">TASKS ASSIGNED</div>
+              <div className="overview-stat-value">{assignedTasksCount}</div>
+              <div className="overview-stat-desc">{unassignedTasksCount} unassigned in queue</div>
             </div>
 
             <div className="overview-stat-card cursor-pointer hover:border-amber transition-colors" onClick={() => navigate('/lead/employees')}>
@@ -414,6 +455,8 @@ export default function LeadDashboard() {
               </button>
               <button
                 className="overview-btn-gold"
+                disabled={assigning}
+                style={{ opacity: assigning ? 0.7 : 1, cursor: assigning ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                 onClick={async () => {
                   if (!taskName.trim()) {
                     toast({ message: 'Task name is required', type: 'error' })
@@ -427,31 +470,31 @@ export default function LeadDashboard() {
                     toast({ message: 'Please select a client', type: 'error' })
                     return
                   }
-                  
+
+                  setAssigning(true)
                   try {
-                    // Map priorities
                     const priorityMap: Record<string, string> = {
                       'Low': 'LOW',
                       'Standard': 'MEDIUM',
                       'High': 'HIGH',
                       'Critical': 'URGENT'
-                    };
-                    const priority = priorityMap[taskPriority] || 'MEDIUM';
+                    }
+                    const priority = priorityMap[taskPriority] || 'MEDIUM'
 
                     await taskService.createTask({
                       name: taskName,
                       description: 'Task auto-assigned from Team Lead Console',
                       priority,
-                      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days default
+                      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
                       clientId: parseInt(selectedClient),
                       assignedEmployeeId: parseInt(selectedEmp)
-                    });
+                    })
 
-                    const empObj = employeesList.find(e => e.id === selectedEmp);
-                    const empName = empObj ? empObj.name : 'selected employee';
+                    const empObj = employeesList.find(e => e.id === selectedEmp)
+                    const empName = empObj ? empObj.name : 'selected employee'
 
                     toast({ message: `Task "${taskName}" successfully assigned to ${empName}!`, type: 'success' })
-                    
+
                     // Reset modal state
                     setShowAssignModal(false)
                     setTaskName('')
@@ -459,15 +502,23 @@ export default function LeadDashboard() {
                     setSelectedClient('')
                     setTaskPriority('Standard')
 
-                    // Refresh employees to update the assigned task count/stats
-                    const emps = await employeeService.getEmployees();
-                    setEmployeesList(emps);
+                    // Notify all pages of the changes, then re-fetch dashboard data
+                    window.dispatchEvent(new CustomEvent('tasks:changed'))
+                    window.dispatchEvent(new CustomEvent('employees:changed'))
+                    await fetchDashboardData()
                   } catch (err: any) {
                     toast({ message: err.message || 'Failed to assign task', type: 'error' })
+                  } finally {
+                    setAssigning(false)
                   }
                 }}
               >
-                Assign Task
+                {assigning ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    Assigning...
+                  </>
+                ) : 'Assign Task'}
               </button>
             </div>
           </div>
