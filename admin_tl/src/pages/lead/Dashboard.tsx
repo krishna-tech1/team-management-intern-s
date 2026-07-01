@@ -5,6 +5,7 @@ import { type Employee } from '@/data/employees'
 import { type Client } from '@/data/clients'
 import { employeeService } from '@/services/employeeService'
 import { clientService } from '@/services/clientService'
+import { documentService } from '@/services/documentService'
 import Spinner from '@/components/ui/Spinner'
 import { Avatar } from '@/components/ui/Avatar'
 import { toast } from '@/components/ui/Toast'
@@ -38,17 +39,24 @@ export default function LeadDashboard() {
   const [taskName, setTaskName] = useState('')
   const [taskPriority, setTaskPriority] = useState('Standard')
 
+  const [docsList, setDocsList] = useState<any[]>([])
+
   // Centralised data fetch — called on mount and after any mutation
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [emps, clis, tasks] = await Promise.all([
+      const [emps, clis, tasks, docsData] = await Promise.all([
         employeeService.getEmployees(),
         clientService.getClients(),
         taskService.getTasks(),
+        documentService.getDocuments(1, 100).catch(err => {
+          console.warn('Failed to load documents:', err);
+          return [];
+        })
       ])
       setEmployeesList(emps)
       setClientsList(clis)
       setTasksList(tasks)
+      setDocsList(docsData || [])
       setError(null)
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data')
@@ -56,6 +64,16 @@ export default function LeadDashboard() {
       setLoading(false)
     }
   }, [])
+
+  const handleVerifyProgressDoc = async (docId: number) => {
+    try {
+      await documentService.verifyDocument(docId);
+      toast({ message: 'Document progress verified successfully!', type: 'success' });
+      fetchDashboardData();
+    } catch (err: any) {
+      toast({ message: err.message || 'Failed to verify document', type: 'error' });
+    }
+  }
 
   useEffect(() => {
     fetchDashboardData()
@@ -349,6 +367,88 @@ export default function LeadDashboard() {
                   Full Incentive Dashboard
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Progress Documents Section */}
+          <div className="overview-card mt-6" style={{ background: '#fff', borderRadius: 12, padding: 24, border: '1px solid #e7e9f1' }}>
+            <div className="overview-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 className="overview-card-title" style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                📁 Team Progress Documents
+              </h3>
+              <span className="attention-badge" style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, background: '#fdf3e1', color: '#b89047', fontWeight: 600 }}>
+                {docsList.filter(d => !d.isVerified).length} Pending Verification
+              </span>
+            </div>
+            <div className="overview-table-scroll" style={{ overflowX: 'auto' }}>
+              {docsList.length === 0 ? (
+                <div className="p-6 text-center text-sm text-ink-soft">
+                  No progress documents have been uploaded by team members.
+                </div>
+              ) : (
+                <table className="overview-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #e7e9f1' }}>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: 12, color: '#8a8fa3' }}>FILE NAME</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: 12, color: '#8a8fa3' }}>UPLOADED DATE</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: 12, color: '#8a8fa3' }}>EMPLOYEE</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: 12, color: '#8a8fa3' }}>REMARKS</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: 12, color: '#8a8fa3' }}>STATUS</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: 12, color: '#8a8fa3', textAlign: 'right' }}>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {docsList.map((doc: any) => {
+                      const empName = doc.employee ? `${doc.employee.firstName} ${doc.employee.lastName}` : (doc.uploadedBy || 'Employee');
+                      return (
+                        <tr key={doc.id} style={{ borderBottom: '1px solid #f1f3f9' }}>
+                          <td style={{ padding: '14px 16px', fontSize: 14 }}>
+                            <a href={doc.fileUrl || doc.filePath} target="_blank" rel="noopener noreferrer" style={{ color: '#3d7cf0', fontWeight: 600 }} className="hover:underline">
+                              {doc.fileName}
+                            </a>
+                          </td>
+                          <td style={{ padding: '14px 16px', fontSize: 13, color: '#4a5568' }}>
+                            {new Date(doc.createdAt).toLocaleDateString()}
+                          </td>
+                          <td style={{ padding: '14px 16px', fontSize: 13, fontWeight: 500 }}>
+                            {empName}
+                          </td>
+                          <td style={{ padding: '14px 16px', fontSize: 13, color: '#718096', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.remarks}>
+                            {doc.remarks || '—'}
+                          </td>
+                          <td style={{ padding: '14px 16px' }}>
+                            {doc.isVerified ? (
+                              <span style={{ padding: '3px 8px', borderRadius: 4, background: '#e6fffa', color: '#319795', fontSize: 11, fontWeight: 700 }}>Verified</span>
+                            ) : (
+                              <span style={{ padding: '3px 8px', borderRadius: 4, background: '#fffaf0', color: '#dd6b20', fontSize: 11, fontWeight: 700 }}>Pending</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                              <a
+                                href={doc.fileUrl || doc.filePath}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ padding: '4px 8px', background: '#edf2f7', color: '#4a5568', borderRadius: 6, fontSize: 12, fontWeight: 600 }}
+                              >
+                                View/Download
+                              </a>
+                              {!doc.isVerified && (
+                                <button
+                                  onClick={() => handleVerifyProgressDoc(doc.id)}
+                                  style={{ padding: '4px 8px', background: '#b89047', color: '#fff', borderRadius: 6, fontSize: 12, fontWeight: 600 }}
+                                >
+                                  Verify Progress
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </>

@@ -91,11 +91,11 @@ export default function LeadTasks() {
     })
   }, [debouncedQ, filterStatus, filterPriority, tasksList])
 
-  const pendingTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Pending'), [filteredTasks])
-  const inProgressTasks = useMemo(() => filteredTasks.filter(t => t.status === 'In Progress'), [filteredTasks])
-  const waitingForClientTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Waiting for Client'), [filteredTasks])
-  const reviewTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Review'), [filteredTasks])
-  const completedTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Completed'), [filteredTasks])
+  const pendingTasks = useMemo(() => filteredTasks.filter(t => (t.status as string) === 'Pending'), [filteredTasks])
+  const inProgressTasks = useMemo(() => filteredTasks.filter(t => (t.status as string) === 'In Progress'), [filteredTasks])
+  const waitingForClientTasks = useMemo(() => filteredTasks.filter(t => (t.status as string) === 'Waiting for Client'), [filteredTasks])
+  const reviewTasks = useMemo(() => filteredTasks.filter(t => (t.status as string) === 'Review'), [filteredTasks])
+  const completedTasks = useMemo(() => filteredTasks.filter(t => (t.status as string) === 'Completed'), [filteredTasks])
 
   return (
     <div>

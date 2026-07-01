@@ -198,6 +198,7 @@ model Task {
 
   workUpdates        TaskWorkUpdate[]
   statusHistory      TaskStatusHistory[]
+  documents          Document[]
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -248,6 +249,10 @@ model Attendance {
   selfieUrl          String?
   selfiePublicId     String?
 
+  distanceBetween    Float?
+  workingHours       Float?
+  locationAccuracy   Float?
+
   employee           Employee          @relation(fields: [employeeId], references: [id])
 
   createdAt          DateTime          @default(now())
@@ -295,6 +300,12 @@ model Document {
   employeeId    Int?
   employee      Employee?    @relation("EmployeeDocs", fields: [employeeId], references: [id])
   uploadedBy    String?      // Email or username of the person who uploaded
+
+  taskId        Int?
+  task          Task?        @relation(fields: [taskId], references: [id])
+  remarks       String?
+  fileSize      Int?         // File size in bytes
+  isVerified    Boolean      @default(false)
 
   createdAt     DateTime     @default(now())
 

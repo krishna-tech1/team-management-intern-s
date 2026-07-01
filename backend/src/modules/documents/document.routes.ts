@@ -3,9 +3,10 @@ import {
   createDocumentController,
   getAllDocumentsController,
   deleteDocumentController,
+  verifyDocumentController,
 } from './document.controller';
 import { authenticateToken } from '../../middleware/auth.middleware';
-import { requireSuperAdmin } from '../../middleware/role.middleware';
+import { requireSuperAdmin, requireTeamLeadOrAdmin } from '../../middleware/role.middleware';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.post(
 router.get(
   '/admin/documents',
   authenticateToken,
-  requireSuperAdmin,
+  requireTeamLeadOrAdmin,
   getAllDocumentsController
 );
 
@@ -28,6 +29,13 @@ router.delete(
   authenticateToken,
   requireSuperAdmin,
   deleteDocumentController
+);
+
+router.patch(
+  '/admin/documents/:id/verify',
+  authenticateToken,
+  requireTeamLeadOrAdmin,
+  verifyDocumentController
 );
 
 export default router;

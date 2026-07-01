@@ -2,6 +2,22 @@ import prisma from '../../config/prisma';
 import { comparePassword, hashPassword } from '../../utils/password.utils';
 import { TaskStatus, AttendanceStatus } from '@prisma/client';
 import { createAuditLog } from '../auditlogs/auditlog.service';
+import { config } from '../../config/index';
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth radius in meters
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // in meters
+}
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -362,6 +378,40 @@ export const createWorkUpdate = async (
     include: { attachments: true },
   });
 
+  const prevStatus = task.status;
+  if (progress === 100) {
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { status: 'COMPLETED' },
+    });
+
+    if (prevStatus !== 'COMPLETED') {
+      await prisma.taskStatusHistory.create({
+        data: {
+          taskId,
+          employeeId: employee.id,
+          fromStatus: prevStatus,
+          toStatus: 'COMPLETED',
+        },
+      });
+      await createAuditLog('Task status updated', `employee:${employee.id}`, 'Task', taskId);
+    }
+  } else if (prevStatus === 'PENDING') {
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { status: 'IN_PROGRESS' },
+    });
+    await prisma.taskStatusHistory.create({
+      data: {
+        taskId,
+        employeeId: employee.id,
+        fromStatus: prevStatus,
+        toStatus: 'IN_PROGRESS',
+      },
+    });
+    await createAuditLog('Task status updated', `employee:${employee.id}`, 'Task', taskId);
+  }
+
   return workUpdate;
 };
 
@@ -473,6 +523,26 @@ export const getEmployeePerformance = async (userId: number) => {
   const attendancePercentage =
     totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
+  // Pending tasks
+  const pendingTasks = await prisma.task.count({
+    where: {
+      assignedEmployeeId: employee.id,
+      status: { not: 'COMPLETED' },
+      isDeleted: false,
+    },
+  });
+
+  // Productivity percentage: based on task completion
+  const productivityPercentage = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
+
+  // Star Rating
+  let currentRating = 1.0;
+  if (score >= 90) currentRating = 5.0;
+  else if (score >= 80) currentRating = 4.0;
+  else if (score >= 70) currentRating = 3.5;
+  else if (score >= 50) currentRating = 2.5;
+  else currentRating = 1.5;
+
   // Achievements (milestones)
   const achievements: string[] = [];
   if (totalCompleted >= 1) achievements.push('First Task Completed');
@@ -487,8 +557,11 @@ export const getEmployeePerformance = async (userId: number) => {
     weeklyProductivity,
     monthlyProductivity,
     completedTasks: totalCompleted,
+    pendingTasks,
     averageCompletionTime,
     attendancePercentage,
+    productivityPercentage,
+    currentRating,
     achievements,
   };
 };
@@ -608,7 +681,8 @@ export const getEmployeeIncentives = async (userId: number) => {
 export const checkIn = async (
   userId: number,
   latitude: number,
-  longitude: number
+  longitude: number,
+  accuracy?: number
 ) => {
   const employee = await getEmployeeByUserId(userId);
 
@@ -638,6 +712,7 @@ export const checkIn = async (
       checkInTime: now,
       checkInLatitude: latitude,
       checkInLongitude: longitude,
+      locationAccuracy: accuracy || null,
       status,
     },
   });
@@ -666,6 +741,22 @@ export const checkOut = async (
     throw new Error('Already checked out today');
   }
 
+  if (existing.checkInLatitude === null || existing.checkInLongitude === null) {
+    throw new Error('Check-in location not recorded. Cannot validate checkout distance.');
+  }
+
+  const distance = getDistance(
+    existing.checkInLatitude,
+    existing.checkInLongitude,
+    latitude,
+    longitude
+  );
+
+  const radius = config.checkoutRadiusMeters;
+  if (distance > radius) {
+    throw new Error('Checkout failed. You are too far from your check-in location.');
+  }
+
   const now = new Date();
   const workingHours = existing.checkInTime
     ? parseFloat(
@@ -682,6 +773,8 @@ export const checkOut = async (
       checkOutTime: now,
       checkOutLatitude: latitude,
       checkOutLongitude: longitude,
+      distanceBetween: distance,
+      workingHours: workingHours,
       remarks: `Working hours: ${workingHours}h`,
     },
   });
@@ -915,4 +1008,48 @@ export const getEmployeeDocuments = async (
   ]);
 
   return { documents, total, page, limit };
+};
+
+export const progressUpload = async (
+  userId: number,
+  data: {
+    taskId?: number;
+    fileUrl: string;
+    fileName: string;
+    fileSize?: number;
+    remarks?: string;
+    uploadedAt: Date;
+  }
+) => {
+  const employee = await getEmployeeByUserId(userId);
+
+  if (data.taskId) {
+    const task = await prisma.task.findFirst({
+      where: {
+        id: data.taskId,
+        assignedEmployeeId: employee.id,
+        isDeleted: false,
+      },
+    });
+    if (!task) {
+      throw new Error('Task not found or access denied');
+    }
+  }
+
+  const record = await prisma.document.create({
+    data: {
+      fileName: data.fileName,
+      filePath: data.fileUrl,
+      fileUrl: data.fileUrl,
+      documentType: 'OTHER',
+      employeeId: employee.id,
+      taskId: data.taskId || null,
+      remarks: data.remarks || null,
+      fileSize: data.fileSize || null,
+      uploadedBy: `${employee.firstName} ${employee.lastName}`,
+      createdAt: data.uploadedAt,
+    },
+  });
+
+  return record;
 };

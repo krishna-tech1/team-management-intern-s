@@ -20,6 +20,7 @@ import {
   getNotificationsController,
   markNotificationReadController,
   getDocumentsController,
+  progressUploadController,
 } from './employee.controller';
 
 const router = Router();
@@ -73,5 +74,6 @@ router.patch('/employee/notifications/:id/read', ...protect, markNotificationRea
 
 // ─── DOCUMENTS ────────────────────────────────────────────────────────────────
 router.get('/employee/documents', ...protect, getDocumentsController);
+router.post('/employee/progress/upload', ...protect, progressUploadController);
 
 export default router;

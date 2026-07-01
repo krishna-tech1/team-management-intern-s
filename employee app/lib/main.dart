@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'utils/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -23,6 +24,30 @@ class FieldCoreApp extends StatefulWidget {
 }
 
 class _FieldCoreAppState extends State<FieldCoreApp> {
+  @override
+  void initState() {
+    super.initState();
+    _requestStartupPermissions();
+  }
+
+  Future<void> _requestStartupPermissions() async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final statuses = await [
+        Permission.location,
+        Permission.camera,
+        Permission.phone,
+        Permission.storage,
+      ].request();
+      
+      // Request photos access as fallback for Android 13+
+      if (statuses[Permission.storage]?.isDenied ?? false) {
+        await Permission.photos.request();
+      }
+    } catch (e) {
+      debugPrint('Error requesting startup permissions: $e');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return MultiProvider(

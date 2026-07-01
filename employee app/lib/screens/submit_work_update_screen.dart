@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../utils/app_theme.dart';
+import '../providers/task_provider.dart';
 
 class SubmitWorkUpdateScreen extends StatefulWidget {
   const SubmitWorkUpdateScreen({super.key});
@@ -9,9 +13,30 @@ class SubmitWorkUpdateScreen extends StatefulWidget {
 }
 
 class _SubmitWorkUpdateScreenState extends State<SubmitWorkUpdateScreen> {
-  double _progress = 0.85;
+  double _progress = 0.0;
   final _titleController = TextEditingController();
   final _notesController = TextEditingController();
+
+  List<File> _photos = [];
+  List<File> _documents = [];
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final taskProvider = Provider.of<TaskProvider>(context, listen: false);
+        final task = taskProvider.selectedTask;
+        if (task != null) {
+          setState(() {
+            _progress = task.progress > 1.0 ? task.progress / 100.0 : task.progress;
+            _notesController.text = task.notes ?? '';
+          });
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -20,296 +45,385 @@ class _SubmitWorkUpdateScreenState extends State<SubmitWorkUpdateScreen> {
     super.dispose();
   }
 
+  Future<void> _pickPhotos() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+      );
+      if (result != null) {
+        final newPhotos = result.paths
+            .where((path) => path != null)
+            .map((path) => File(path!))
+            .toList();
+        setState(() {
+          _photos.addAll(newPhotos);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking photos: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickDocuments() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+        allowMultiple: true,
+      );
+      if (result != null) {
+        final newDocs = result.paths
+            .where((path) => path != null)
+            .map((path) => File(path!))
+            .toList();
+        setState(() {
+          _documents.addAll(newDocs);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking documents: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  Future<void> _submitWorkUpdate() async {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an update title.'), backgroundColor: Colors.amber),
+      );
+      return;
+    }
+
+    final taskProvider = Provider.of<TaskProvider>(context, listen: false);
+    final task = taskProvider.selectedTask;
+    if (task == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No task selected to update.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final success = await taskProvider.uploadTaskDocument(
+      taskId: task.id,
+      title: title,
+      progress: _progress,
+      remarks: _notesController.text.trim(),
+      photos: _photos,
+      documents: _documents,
+    );
+
+    setState(() {
+      _isSubmitting = false;
+    });
+
+    if (success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Work update submitted successfully!'), backgroundColor: AppColors.primary),
+        );
+        Navigator.of(context).pop();
+      }
+    } else {
+      if (mounted) {
+        final errorMsg = taskProvider.error ?? 'Submission failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $errorMsg'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final taskProvider = context.watch<TaskProvider>();
+    final task = taskProvider.selectedTask;
     final percentLabel = '${(_progress * 100).round()}%';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF966314)),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'FieldCore',
-          style: TextStyle(color: Color(0xFF966314), fontSize: 20, fontWeight: FontWeight.w700),
+        title: Text(
+          task != null ? 'Update: ${task.id}' : 'Submit Work Update',
+          style: const TextStyle(color: Color(0xFF966314), fontSize: 18, fontWeight: FontWeight.w700),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
-            ),
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // UPDATE TITLE
-            const _SectionLabel(label: 'UPDATE TITLE'),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                hintText: 'e.g., Initial cabling completed',
-                hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                fillColor: AppColors.surface,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF966314), width: 1.5),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // PROGRESS PERCENTAGE
-            Container(
+      body: task == null
+          ? const Center(child: Text('No task selected.'))
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFD6C8B5)),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'PROGRESS PERCENTAGE',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: Color(0xFF8A775E)),
+                  // UPDATE TITLE
+                  const _SectionLabel(label: 'UPDATE TITLE'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _titleController,
+                    enabled: !_isSubmitting,
+                    decoration: InputDecoration(
+                      hintText: 'e.g., Cable splicing and panel testing completed',
+                      hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      fillColor: AppColors.surface,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
                       ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF39C12),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          percentLabel,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
-                        ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: const Color(0xFFF39C12),
-                      inactiveTrackColor: const Color(0xFFEBE1D5),
-                      thumbColor: const Color(0xFFF39C12),
-                      trackHeight: 6,
-                    ),
-                    child: Slider(
-                      value: _progress,
-                      min: 0,
-                      max: 1,
-                      onChanged: (v) => setState(() => _progress = v),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFF966314), width: 1.5),
+                      ),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text('Not Started', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF8A775E))),
-                      Text('Completed', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF8A775E))),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-            // DETAILED NOTES
-            const _SectionLabel(label: 'DETAILED NOTES'),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _notesController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: 'Describe the work performed, any blockers encountered, or specific details for the ops manager...',
-                hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                hintMaxLines: 4,
-                fillColor: AppColors.surface,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF966314), width: 1.5),
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            const Text('Document Verification', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-            const SizedBox(height: 8),
-            const Text(
-              'Please upload the required documentation to proceed with your project assignment. Files must be under 25MB each.',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-            ),
-            const SizedBox(height: 24),
-            
-            _buildUploadSection(
-              title: 'Photos',
-              icon: Icons.image,
-              required: true,
-              uploadIcon: Icons.cloud_upload_outlined,
-              uploadText1: 'Drag & Drop or ',
-              uploadLink: 'Browse',
-              uploadText2: 'JPG, PNG up to 10MB',
-            ),
-            const SizedBox(height: 16),
-            
-            _buildUploadSection(
-              title: 'Contracts',
-              icon: Icons.description,
-              required: false,
-              uploadIcon: Icons.upload_file,
-              uploadText1: 'Upload PDF Agreement',
-              uploadText2: 'Must be digitally signed',
-            ),
-            const SizedBox(height: 16),
-
-            _buildUploadSection(
-              title: 'Support',
-              icon: Icons.note_add,
-              required: false,
-              uploadIcon: Icons.add_box_outlined,
-              uploadText1: 'Add Supporting Docs',
-              uploadText2: 'Invoices, certificates, etc.',
-            ),
-            const SizedBox(height: 32),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('Recent Uploads', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                Text('3 Files Uploaded', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF966314))),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            _buildRecentUploadItem(
-              iconWidget: Image.network('https://images.unsplash.com/photo-1534088568595-a066f410cbda?w=100&q=80', width: 40, height: 40, fit: BoxFit.cover),
-              filename: 'site_survey_north.jpg',
-              subtitle: '4.2 MB • Uploaded 2m ago',
-              status: 'done',
-            ),
-            const SizedBox(height: 12),
-            _buildRecentUploadItem(
-              iconWidget: const Icon(Icons.description, color: Color(0xFF966314), size: 24),
-              iconBgColor: const Color(0xFFFFECCC),
-              filename: 'compliance_checklist_v2.pdf',
-              subtitle: 'Uploading... 65%',
-              status: 'uploading',
-              progress: 0.65,
-            ),
-            const SizedBox(height: 12),
-            _buildRecentUploadItem(
-              iconWidget: const Icon(Icons.description, color: Color(0xFF966314), size: 24),
-              iconBgColor: const Color(0xFFFFECCC),
-              filename: 'contract_signed_final.pdf',
-              subtitle: '1.8 MB • Uploaded 15m ago',
-              status: 'done',
-            ),
-            const SizedBox(height: 24),
-
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEBE1D5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info, color: Color(0xFF966314), size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
+                  // PROGRESS PERCENTAGE
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFD6C8B5)),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('Missing a document?', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                        SizedBox(height: 4),
-                        Text(
-                          'You can save your progress and return later to upload the remaining files. Your draft will be held for 7 days.',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'PROGRESS PERCENTAGE',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: Color(0xFF8A775E)),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF39C12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                percentLabel,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: const Color(0xFFF39C12),
+                            inactiveTrackColor: const Color(0xFFEBE1D5),
+                            thumbColor: const Color(0xFFF39C12),
+                            trackHeight: 6,
+                          ),
+                          child: Slider(
+                            value: _progress,
+                            min: 0.0,
+                            max: 1.0,
+                            onChanged: _isSubmitting ? null : (v) => setState(() => _progress = v),
+                          ),
+                        ),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Not Started', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF8A775E))),
+                            Text('Completed', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF8A775E))),
+                          ],
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // DETAILED NOTES
+                  const _SectionLabel(label: 'DETAILED NOTES / REMARKS'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _notesController,
+                    maxLines: 4,
+                    enabled: !_isSubmitting,
+                    decoration: InputDecoration(
+                      hintText: 'Describe the work performed, details for verification or blockers...',
+                      hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      fillColor: AppColors.surface,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFD6C8B5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFF966314), width: 1.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text('Upload Supporting Files', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Select photos or documents to submit with this work update. Files must be under 25MB.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Pick Photos
+                  _buildUploadSection(
+                    title: 'Photos (Images)',
+                    icon: Icons.image_outlined,
+                    onTap: _isSubmitting ? null : _pickPhotos,
+                    uploadHint: 'Tap to browse photo attachments',
+                    uploadSub: 'JPG, PNG formats supported',
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Pick Documents
+                  _buildUploadSection(
+                    title: 'Documents (PDF, Word, Excel)',
+                    icon: Icons.description_outlined,
+                    onTap: _isSubmitting ? null : _pickDocuments,
+                    uploadHint: 'Tap to browse PDF/Office documents',
+                    uploadSub: 'PDF, DOC, XLS formats supported',
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Picked Files Section
+                  if (_photos.isNotEmpty || _documents.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Picked Files', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                        Text('${_photos.length + _documents.length} Files', style: const TextStyle(fontSize: 12, color: AppColors.accent, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ..._photos.map((file) {
+                      final name = file.path.split(Platform.pathSeparator).last;
+                      final size = file.lengthSync();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildPickedFileRow(
+                          filename: name,
+                          info: 'Photo • ${_formatFileSize(size)}',
+                          isImage: true,
+                          onDelete: _isSubmitting
+                              ? null
+                              : () => setState(() => _photos.remove(file)),
+                        ),
+                      );
+                    }),
+                    ..._documents.map((file) {
+                      final name = file.path.split(Platform.pathSeparator).last;
+                      final size = file.lengthSync();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildPickedFileRow(
+                          filename: name,
+                          info: 'Document • ${_formatFileSize(size)}',
+                          isImage: false,
+                          onDelete: _isSubmitting
+                              ? null
+                              : () => setState(() => _documents.remove(file)),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                  ],
+
+                  if (_isSubmitting) ...[
+                    const Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 8),
+                          Text('Uploading work update and files...', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+                          child: const Text(
+                            'CANCEL',
+                            style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _submitWorkUpdate,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF39C12),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: const Text('SUBMIT', style: TextStyle(fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
-            const SizedBox(height: 40),
-            
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('SAVE FOR LATER', style: TextStyle(color: Color(0xFF966314), fontWeight: FontWeight.w700, fontSize: 13)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF39C12),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  ),
-                  child: const Text('DONE', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildUploadSection({
     required String title,
     required IconData icon,
-    required bool required,
-    required IconData uploadIcon,
-    required String uploadText1,
-    String? uploadLink,
-    required String uploadText2,
+    required VoidCallback? onTap,
+    required String uploadHint,
+    required String uploadSub,
   }) {
     return Container(
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEBE1D5), width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider, width: 0.8),
       ),
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -317,41 +431,31 @@ class _SubmitWorkUpdateScreenState extends State<SubmitWorkUpdateScreen> {
             children: [
               Icon(icon, size: 20, color: const Color(0xFF966314)),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-              const Spacer(),
-              if (required)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: const Color(0xFFFFD194), borderRadius: BorderRadius.circular(4)),
-                  child: const Text('REQUIRED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF966314))),
-                ),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFD6C8B5), width: 1.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                Icon(uploadIcon, size: 32, color: const Color(0xFF966314)),
-                const SizedBox(height: 12),
-                if (uploadLink != null)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(uploadText1, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF966314))),
-                      Text(uploadLink, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, decoration: TextDecoration.underline, color: Color(0xFF966314))),
-                    ],
-                  )
-                else
-                  Text(uploadText1, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF966314))),
-                const SizedBox(height: 4),
-                Text(uploadText2, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              ],
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.accentMedium, width: 1.5),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.cloud_upload_outlined, size: 28, color: Color(0xFF966314)),
+                  const SizedBox(height: 8),
+                  Text(
+                    uploadHint,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF966314), fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(uploadSub, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                ],
+              ),
             ),
           ),
         ],
@@ -359,82 +463,55 @@ class _SubmitWorkUpdateScreenState extends State<SubmitWorkUpdateScreen> {
     );
   }
 
-  Widget _buildRecentUploadItem({
-    required Widget iconWidget,
-    Color? iconBgColor,
+  Widget _buildPickedFileRow({
     required String filename,
-    required String subtitle,
-    required String status,
-    double? progress,
+    required String info,
+    required bool isImage,
+    required VoidCallback? onDelete,
   }) {
     return Container(
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border.all(color: const Color(0xFFD6C8B5), width: 1.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.divider, width: 0.8),
       ),
-      clipBehavior: Clip.hardEdge,
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            if (status == 'uploading')
-              Container(width: 4, color: const Color(0xFFF39C12)),
-            Expanded(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: iconBgColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          clipBehavior: Clip.hardEdge,
-                          child: Center(child: iconWidget),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(filename, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                              const SizedBox(height: 2),
-                              Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ),
-                        if (status == 'done') ...[
-                          const Icon(Icons.check_circle, color: Color(0xFF966314), size: 20),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 20),
-                        ] else if (status == 'uploading') ...[
-                          const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
-                        ],
-                      ],
-                    ),
-                  ),
-                  if (progress != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 4,
-                          backgroundColor: const Color(0xFFEBE1D5),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF39C12)),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: isImage ? const Color(0xFFE8F5E9) : AppColors.accentLight,
+              borderRadius: BorderRadius.circular(6),
             ),
-          ],
-        ),
+            child: Icon(
+              isImage ? Icons.image : Icons.insert_drive_file,
+              color: isImage ? Colors.green : AppColors.accent,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  filename,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(info, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+          if (onDelete != null)
+            GestureDetector(
+              onTap: onDelete,
+              child: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+            ),
+        ],
       ),
     );
   }
@@ -452,4 +529,3 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
-

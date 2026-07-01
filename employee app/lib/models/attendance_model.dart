@@ -14,6 +14,7 @@ class AttendanceModel {
   final double? checkOutLongitude; // Long coordinate for check-out
   final String? checkInAddress; // Address at check-in location
   final String? checkOutAddress; // Address at check-out location
+  final double? locationAccuracy; // Accuracy of the check-in location
 
   AttendanceModel({
     required this.id,
@@ -29,6 +30,7 @@ class AttendanceModel {
     this.checkOutLongitude,
     this.checkInAddress,
     this.checkOutAddress,
+    this.locationAccuracy,
   });
 
   factory AttendanceModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class AttendanceModel {
       checkOutLongitude: (json['checkOutLongitude'] as num?)?.toDouble(),
       checkInAddress: json['checkInAddress']?.toString(),
       checkOutAddress: json['checkOutAddress']?.toString(),
+      locationAccuracy: (json['locationAccuracy'] as num?)?.toDouble(),
     );
   }
 
@@ -69,6 +72,7 @@ class AttendanceModel {
       'checkOutLongitude': checkOutLongitude,
       'checkInAddress': checkInAddress,
       'checkOutAddress': checkOutAddress,
+      'locationAccuracy': locationAccuracy,
     };
   }
 
@@ -85,6 +89,7 @@ class AttendanceModel {
     double? checkOutLongitude,
     String? checkInAddress,
     String? checkOutAddress,
+    double? locationAccuracy,
   }) {
     return AttendanceModel(
       id: id,
@@ -100,6 +105,7 @@ class AttendanceModel {
       checkOutLongitude: checkOutLongitude ?? this.checkOutLongitude,
       checkInAddress: checkInAddress ?? this.checkInAddress,
       checkOutAddress: checkOutAddress ?? this.checkOutAddress,
+      locationAccuracy: locationAccuracy ?? this.locationAccuracy,
     );
   }
 }

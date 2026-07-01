@@ -17,6 +17,7 @@ import {
   getEmployeeNotifications,
   markNotificationRead,
   getEmployeeDocuments,
+  progressUpload,
 } from './employee.service';
 import {
   successResponse,
@@ -157,13 +158,18 @@ export const getIncentivesController = async (req: AuthRequest, res: Response) =
 export const checkInController = async (req: AuthRequest, res: Response) => {
   try {
     const userId = parseInt(req.user!.id);
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, accuracy } = req.body;
 
     if (latitude === undefined || longitude === undefined) {
       return errorResponse(res, 'latitude and longitude are required', 400);
     }
 
-    const record = await checkIn(userId, parseFloat(latitude), parseFloat(longitude));
+    const record = await checkIn(
+      userId,
+      parseFloat(latitude),
+      parseFloat(longitude),
+      accuracy !== undefined ? parseFloat(accuracy) : undefined
+    );
     return successResponse(res, record, 'Checked in successfully', 201);
   } catch (err: any) {
     const code = err.message.includes('Already') ? 400 : 500;
@@ -184,7 +190,12 @@ export const checkOutController = async (req: AuthRequest, res: Response) => {
     return successResponse(res, record, 'Checked out successfully');
   } catch (err: any) {
     const code =
-      err.message.includes('Cannot') || err.message.includes('Already') ? 400 : 500;
+      err.message.includes('Cannot') ||
+      err.message.includes('Already') ||
+      err.message.includes('failed') ||
+      err.message.includes('too far')
+        ? 400
+        : 500;
     return errorResponse(res, err.message, code);
   }
 };
@@ -270,6 +281,30 @@ export const getDocumentsController = async (req: AuthRequest, res: Response) =>
     const search = req.query.search as string | undefined;
     const result = await getEmployeeDocuments(userId, page, limit, search);
     return paginatedResponse(res, result.documents, result.total, result.page, result.limit);
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
+  }
+};
+
+export const progressUploadController = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = parseInt(req.user!.id);
+    const { taskId, fileUrl, remarks, fileName, fileSize, uploadedAt } = req.body;
+
+    if (!fileUrl) {
+      return errorResponse(res, 'fileUrl is required', 400);
+    }
+
+    const record = await progressUpload(userId, {
+      taskId: taskId ? parseInt(taskId) : undefined,
+      fileUrl,
+      fileName: fileName || fileUrl.split('/').pop() || 'document',
+      fileSize: fileSize ? parseInt(fileSize) : undefined,
+      remarks,
+      uploadedAt: uploadedAt ? new Date(uploadedAt) : new Date(),
+    });
+
+    return successResponse(res, record, 'Progress document uploaded successfully', 201);
   } catch (err: any) {
     return errorResponse(res, err.message, 500);
   }

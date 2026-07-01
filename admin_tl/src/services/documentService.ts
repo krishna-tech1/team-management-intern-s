@@ -19,6 +19,10 @@ export interface DocumentRecord {
     firstName: string;
     lastName: string;
   } | null;
+  taskId?: number | null;
+  remarks?: string | null;
+  fileSize?: number | null;
+  isVerified?: boolean;
 }
 
 export const documentService = {
@@ -54,5 +58,9 @@ export const documentService = {
 
   deleteDocument: async (id: number): Promise<{ message: string }> => {
     return apiClient.delete(`/admin/documents/${id}`);
+  },
+
+  verifyDocument: async (id: number): Promise<DocumentRecord> => {
+    return apiClient.patch(`/admin/documents/${id}/verify`);
   }
 };

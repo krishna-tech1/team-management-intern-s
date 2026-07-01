@@ -4,6 +4,7 @@ import {
   createDocument,
   getAllDocuments,
   deleteDocument,
+  verifyDocument,
 } from './document.service';
 import {
   successResponse,
@@ -67,6 +68,24 @@ export const deleteDocumentController = async (
     const performedBy = req.user?.email || 'System';
     const result = await deleteDocument(id, performedBy);
     return successResponse(res, result, 'Document deleted successfully');
+  } catch (err: any) {
+    return errorResponse(
+      res,
+      err.message,
+      err.message === 'Document not found' ? 404 : 500
+    );
+  }
+};
+
+export const verifyDocumentController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const id = parseInt(req.params.id);
+    const performedBy = req.user?.email || 'System';
+    const result = await verifyDocument(id, performedBy);
+    return successResponse(res, result, 'Document verified successfully');
   } catch (err: any) {
     return errorResponse(
       res,

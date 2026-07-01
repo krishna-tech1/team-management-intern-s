@@ -30,6 +30,7 @@ interface Executive {
   locationIcon: LocationIcon
   status: string
   statusClass: StatusClass
+  checkoutRadiusValidation?: string
 }
 
 const PAGE_SIZE = 4

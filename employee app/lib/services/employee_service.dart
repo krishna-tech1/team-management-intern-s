@@ -33,4 +33,10 @@ class EmployeeService {
     final payload = data['data'] ?? data;
     return payload['profilePictureUrl']?.toString() ?? payload['profilePhotoUrl']?.toString() ?? '';
   }
+
+  Future<Map<String, dynamic>> getEmployeePerformance() async {
+    final response = await _apiClient.get(ApiEndpoints.performance);
+    final data = jsonDecode(response.body);
+    return Map<String, dynamic>.from(data['data'] ?? data);
+  }
 }

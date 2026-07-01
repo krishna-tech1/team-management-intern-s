@@ -114,3 +114,28 @@ export const deleteDocument = async (id: number, performedBy: string) => {
 
   return { message: 'Document deleted successfully' };
 };
+
+// Verify a progress document in the database
+export const verifyDocument = async (id: number, performedBy: string) => {
+  const document = await prisma.document.findUnique({
+    where: { id },
+  });
+  if (!document) throw new Error('Document not found');
+
+  const updated = await prisma.document.update({
+    where: { id },
+    data: {
+      isVerified: true,
+    },
+  });
+
+  // Log to AuditLog
+  await createAuditLog(
+    `Document ${document.fileName} verified`,
+    performedBy,
+    'Document',
+    id
+  );
+
+  return updated;
+};

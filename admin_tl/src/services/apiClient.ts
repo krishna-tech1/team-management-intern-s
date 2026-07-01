@@ -1,6 +1,6 @@
   /// <reference types="vite/client" />
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://team-management-intern-s-pzly.vercel.app/api';
-//const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://team-management-intern-s-pzly.vercel.app/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 const STORAGE_KEY = 'teamlead_session';
 
@@ -110,6 +110,9 @@ export const apiClient = {
   
   put: (endpoint: string, body?: any, options?: RequestOptions) => 
     request(endpoint, { ...options, method: 'PUT', body }),
+  
+  patch: (endpoint: string, body?: any, options?: RequestOptions) => 
+    request(endpoint, { ...options, method: 'PATCH', body }),
   
   delete: (endpoint: string, options?: RequestOptions) => 
     request(endpoint, { ...options, method: 'DELETE' }),

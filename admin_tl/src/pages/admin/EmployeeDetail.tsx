@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar"
 import Spinner from "@/components/ui/Spinner"
 import { type Employee } from "@/data/employees"
 import { employeeService } from "@/services/employeeService"
+import { documentService } from "@/services/documentService"
 import { AlertCircle } from 'lucide-react'
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "@/components/ui/Toast"
@@ -18,6 +19,9 @@ export default function AdminEmployeeDetail() {
   const [error, setError] = useState<string | null>(null)
   const [toggling, setToggling] = useState(false)
   const { user } = useAuth()
+
+  const [docs, setDocs] = useState<any[]>([])
+  const [loadingDocs, setLoadingDocs] = useState(true)
 
   const isSuperAdmin = user?.dbRole === 'SUPER_ADMIN'
 
@@ -41,6 +45,29 @@ export default function AdminEmployeeDetail() {
     }
   };
 
+  const fetchDocs = async () => {
+    if (!id) return;
+    try {
+      setLoadingDocs(true);
+      const data = await documentService.getDocuments(1, 100, undefined, Number(id));
+      setDocs(data || []);
+    } catch (err) {
+      console.error("Error fetching documents:", err);
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
+  const handleVerifyDoc = async (docId: number) => {
+    try {
+      await documentService.verifyDocument(docId);
+      toast({ message: "Document verified successfully", type: "success" });
+      fetchDocs();
+    } catch (err: any) {
+      toast({ message: err.message || "Failed to verify document", type: "error" });
+    }
+  };
+
   useEffect(() => {
     if (!id) return
     employeeService.getEmployeeById(id)
@@ -52,6 +79,7 @@ export default function AdminEmployeeDetail() {
         setError(err.message || 'Employee not found')
         setLoading(false)
       })
+    fetchDocs();
   }, [id])
 
   if (error) {
@@ -263,6 +291,82 @@ export default function AdminEmployeeDetail() {
                 </table>
               </div>
             </>
+          )}
+        </div>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader title="Progress Upload Documents" />
+        <div className="px-6 pb-6">
+          {loadingDocs ? (
+            <div className="text-center py-4">Loading documents...</div>
+          ) : docs.length === 0 ? (
+            <div className="text-center text-ink-soft py-6">No progress documents uploaded by this employee.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-y border-line bg-surface-muted text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                    <th className="px-4 py-3">File Name</th>
+                    <th className="px-4 py-3">Uploaded Date</th>
+                    <th className="px-4 py-3">Remarks</th>
+                    <th className="px-4 py-3">Verification</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {docs.map((doc: any) => (
+                    <tr key={doc.id} className="border-b border-line-soft transition-colors last:border-0 hover:bg-surface-muted">
+                      <td className="px-4 py-3.5 font-medium text-ink max-w-[250px] truncate">
+                        <a 
+                          href={doc.fileUrl || doc.filePath} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:underline text-amber-600 font-semibold"
+                        >
+                          {doc.fileName}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3.5 text-ink-soft">
+                        {new Date(doc.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3.5 text-ink-soft max-w-[200px] truncate">
+                        {doc.remarks || '—'}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {doc.isVerified ? (
+                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-success">Verified</span>
+                        ) : (
+                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-gold-dark">Pending</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <a 
+                            href={doc.fileUrl || doc.filePath} 
+                            download 
+                            className="px-2 py-1 text-xs border rounded-md hover:bg-line-soft text-ink-soft hover:text-ink transition-colors"
+                            title="Download/View"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Download/View
+                          </a>
+                          {!doc.isVerified && (
+                            <button
+                              onClick={() => handleVerifyDoc(doc.id)}
+                              className="px-2 py-1 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-md transition-colors"
+                            >
+                              Verify Progress
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </Card>

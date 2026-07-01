@@ -18,4 +18,8 @@ class ApiEndpoints {
   static const String notifications = '/employee/notifications';
   static const String announcements = '/employee/notifications';
   static String markNotificationRead(String id) => '/employee/notifications/$id/read';
+
+  static const String progressUpload = '/employee/progress/upload';
+  static const String employeeDocuments = '/employee/documents';
+  static const String performance = '/employee/performance';
 }

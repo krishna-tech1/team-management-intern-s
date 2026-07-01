@@ -20,6 +20,7 @@ class AttendanceService {
       body: {
         'latitude': record.checkInLatitude ?? 12.9716,
         'longitude': record.checkInLongitude ?? 77.5946,
+        'accuracy': record.locationAccuracy ?? 0.0,
       },
     );
     final data = jsonDecode(response.body);

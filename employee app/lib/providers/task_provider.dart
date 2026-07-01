@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../models/task_model.dart';
 import '../services/task_service.dart';
 
@@ -82,19 +83,27 @@ class TaskProvider extends ChangeNotifier {
   }
 
   /// Uploads a task document and updates the task progress.
-  Future<bool> uploadTaskDocument(
-    String employeeId,
-    String taskId,
-    String localFilePath,
-    double progress,
-    String? notes,
-  ) async {
+  Future<bool> uploadTaskDocument({
+    required String taskId,
+    required String title,
+    required double progress,
+    String? remarks,
+    List<File> photos = const [],
+    List<File> documents = const [],
+  }) async {
     _isUpdating = true;
     _error = null;
     notifyListeners();
 
     try {
-      final updatedTask = await _taskService.uploadTaskDocument(taskId, localFilePath, progress, notes);
+      final updatedTask = await _taskService.uploadTaskDocument(
+        taskId: taskId,
+        title: title,
+        progress: progress,
+        remarks: remarks,
+        photos: photos,
+        documents: documents,
+      );
       final index = _tasks.indexWhere((t) => t.id == taskId);
       if (index != -1) {
         _tasks[index] = updatedTask;
