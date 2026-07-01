@@ -241,77 +241,7 @@ export function Topbar({
           </button>
         </div>
 
-        {/* Help */}
-        <div className="relative" ref={helpRef}>
-          <button
-            onClick={() => {
-              setHelpOpen((s) => !s)
-              setNotifOpen(false)
-              setSupportOpen(false)
-            }}
-            className="text-ink-soft transition-colors hover:text-ink"
-            aria-label="Help"
-          >
-            <HelpCircle className="h-5 w-5" />
-          </button>
-          {helpOpen && (
-            <div className="absolute right-0 mt-2 w-96 z-50">
-              <Card>
-                <div className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="text-lg font-semibold">Help</div>
-                    <button
-                      onClick={() => setHelpOpen(false)}
-                      className="text-ink-muted hover:text-ink transition-colors rounded p-0.5 -mt-0.5"
-                      aria-label="Close help"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="mt-2 text-sm text-ink-muted">No help page found. This is a placeholder.</div>
-                </div>
-              </Card>
-            </div>
-          )}
-        </div>
 
-        <span className="h-6 w-px bg-line" />
-
-        {/* Support */}
-        <div className="relative" ref={supportRef}>
-          <button
-            onClick={() => {
-              setSupportOpen((s) => !s)
-              setNotifOpen(false)
-              setHelpOpen(false)
-            }}
-            className="text-sm font-semibold text-gold-dark"
-          >
-            Support
-          </button>
-          {supportOpen && (
-            <div className="absolute right-0 mt-2 w-80 z-50">
-              <Card>
-                <div className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="text-lg font-semibold">Support</div>
-                    <button
-                      onClick={() => setSupportOpen(false)}
-                      className="text-ink-muted hover:text-ink transition-colors rounded p-0.5 -mt-0.5"
-                      aria-label="Close support"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="mt-3 space-y-1.5">
-                    <div className="text-sm">Email: <span className="font-medium">support@complianceos.com</span></div>
-                    <div className="text-sm">Contact: <span className="font-medium">+91 1800 123 456</span></div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          )}
-        </div>
 
         {/* Profile */}
         <div className="relative" ref={profileRef}>

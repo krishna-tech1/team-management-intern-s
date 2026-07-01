@@ -19,6 +19,40 @@ export default function AdminIncentives() {
   const [page, setPage] = useState(1)
   const pageSize = 5
 
+  const [gradeAVal, setGradeAVal] = useState(() => {
+    const saved = localStorage.getItem('gradeAVal')
+    return saved ? Number(saved) : 10000
+  })
+  const [gradeBVal, setGradeBVal] = useState(() => {
+    const saved = localStorage.getItem('gradeBVal')
+    return saved ? Number(saved) : 5000
+  })
+  const [gradeCVal, setGradeCVal] = useState(() => {
+    const saved = localStorage.getItem('gradeCVal')
+    return saved ? Number(saved) : 0
+  })
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [modalA, setModalA] = useState(gradeAVal)
+  const [modalB, setModalB] = useState(gradeBVal)
+  const [modalC, setModalC] = useState(gradeCVal)
+
+  const openModal = () => {
+    setModalA(gradeAVal)
+    setModalB(gradeBVal)
+    setModalC(gradeCVal)
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveGrades = () => {
+    localStorage.setItem('gradeAVal', String(modalA))
+    localStorage.setItem('gradeBVal', String(modalB))
+    localStorage.setItem('gradeCVal', String(modalC))
+    setGradeAVal(modalA)
+    setGradeBVal(modalB)
+    setGradeCVal(modalC)
+    setIsEditModalOpen(false)
+  }
+
   const currentMonth = useMemo(() => {
     return new Date().toISOString().slice(0, 7) // "YYYY-MM"
   }, [])
@@ -62,15 +96,8 @@ export default function AdminIncentives() {
         const idNum = Number(emp.id)
         const score = performanceMap[idNum] !== undefined ? performanceMap[idNum] : (emp.score ?? 85)
         
-        let incentiveEarned = 0
-        if (isFrozen) {
-          const matching = backendIncentives.find((i) => Number(i.employeeId) === idNum)
-          incentiveEarned = matching ? matching.amount : 0
-        } else {
-          if (score >= 90) incentiveEarned = 10000
-          else if (score >= 80) incentiveEarned = 5000
-          else incentiveEarned = 0
-        }
+        const matching = backendIncentives.find((i) => Number(i.employeeId) === idNum)
+        const incentiveEarned = matching ? matching.amount : 0
 
         return {
           ...emp,
@@ -251,7 +278,13 @@ export default function AdminIncentives() {
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                   <div style={{ width: 40, height: 40, borderRadius: 9999, background: '#BDBDBD', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, marginRight: 12, fontSize: 13 }}>{(e.name || '').split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()}</div>
                                   <div>
-                                    <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{e.name}</div>
+                                    <div 
+                                      style={{ fontSize: 15, fontWeight: 600, color: '#111827', cursor: 'pointer' }}
+                                      className="hover:underline"
+                                      onClick={() => navigate(`/employees/${e.id}`)}
+                                    >
+                                      {e.name}
+                                    </div>
                                     <div style={{ fontSize: 12, color: '#8B8B8F', marginTop: 4 }}>{e.designation || e.team || '-'}</div>
                                   </div>
                                 </div>
@@ -286,13 +319,18 @@ export default function AdminIncentives() {
 
               <div className="lg:col-span-1">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', color: '#8B8B8F' }}>Payout Grades</div>
+                    <Button variant="outline" size="sm" onClick={openModal} style={{ height: 28, padding: '4px 10px', fontSize: 12 }}>Edit</Button>
+                  </div>
+
                   <div style={{ background: '#fff', borderRadius: 12, padding: 14, boxShadow: '0 6px 18px rgba(16,24,40,0.04)', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700 }}>Grade A</div>
                         <div style={{ fontSize: 12, color: '#8B8B8F' }}>Score ≥ 90</div>
                       </div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: '#C8860D' }}>₹10,000</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: '#C8860D' }}>{formatCurrency(gradeAVal)}</div>
                     </div>
                   </div>
 
@@ -301,7 +339,7 @@ export default function AdminIncentives() {
                       <div style={{ fontSize: 13, fontWeight: 700 }}>Grade B</div>
                       <div style={{ fontSize: 12, color: '#8B8B8F' }}>Score 80 - 89</div>
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#C8860D' }}>₹5,000</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#C8860D' }}>{formatCurrency(gradeBVal)}</div>
                   </div>
 
                   <div style={{ background: '#fff', borderRadius: 12, padding: 14, boxShadow: '0 6px 18px rgba(16,24,40,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -309,15 +347,7 @@ export default function AdminIncentives() {
                       <div style={{ fontSize: 13, fontWeight: 700 }}>Grade C</div>
                       <div style={{ fontSize: 12, color: '#8B8B8F' }}>Score &lt; 80</div>
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#6B6B6B' }}>₹0</div>
-                  </div>
-
-                  <div style={{ background: '#FEF6E7', borderLeft: '4px solid #F5A623', padding: 12, borderRadius: 8, color: '#5B4A2B' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" stroke="#5B4A2B" strokeWidth="1.2"/></svg>
-                      Automation Logic
-                    </div>
-                    <div style={{ fontSize: 13 }}>The calculation is synced with the MCA Filing module and Task Completion rates. All scores are finalized on the 3rd of every month.</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#6B6B6B' }}>{formatCurrency(gradeCVal)}</div>
                   </div>
 
                   <div style={{ background: '#111827', color: '#fff', borderRadius: 12, padding: 20, marginTop: 8 }}>
@@ -340,6 +370,50 @@ export default function AdminIncentives() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsEditModalOpen(false)} />
+          <Card className="z-10 w-full max-w-md">
+            <CardHeader title="Edit Payout Grades" />
+            <div className="px-6 pb-6">
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">Grade A Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={modalA}
+                    onChange={(e) => setModalA(Number(e.target.value))}
+                    className="w-full h-10 rounded-lg border border-line bg-surface px-3 text-sm text-ink"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">Grade B Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={modalB}
+                    onChange={(e) => setModalB(Number(e.target.value))}
+                    className="w-full h-10 rounded-lg border border-line bg-surface px-3 text-sm text-ink"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">Grade C Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={modalC}
+                    onChange={(e) => setModalC(Number(e.target.value))}
+                    className="w-full h-10 rounded-lg border border-line bg-surface px-3 text-sm text-ink"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                <Button variant="primary" style={{ backgroundColor: 'var(--color-amber)', borderColor: 'var(--color-amber)' }} onClick={handleSaveGrades}>Save</Button>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
     </div>

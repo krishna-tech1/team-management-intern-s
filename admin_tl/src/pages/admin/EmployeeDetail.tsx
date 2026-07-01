@@ -132,6 +132,10 @@ export default function AdminEmployeeDetail() {
                 <p className="text-sm text-ink mt-1">{emp.email}</p>
               </div>
               <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Username</p>
+                <p className="text-sm text-ink mt-1">{emp.user?.email || '—'}</p>
+              </div>
+              <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Phone Number</p>
                 <p className="text-sm text-ink mt-1">{emp.phone || '—'}</p>
               </div>

@@ -13,6 +13,7 @@ interface LeaderboardRow {
   attainment: number
   trend: 'up' | 'neutral'
   estimated: string
+  employeeId?: number
 }
 
 interface Validation {
@@ -21,6 +22,7 @@ interface Validation {
   claimedBy: string
   amount: string
   color: string
+  employeeId?: number
 }
 
 const formatCurrency = (val: number | string | undefined | null) => {
@@ -190,7 +192,8 @@ export default function Incentive() {
         avatar: initials,
         attainment,
         trend: index === 0 ? 'up' : 'neutral',
-        estimated: formatCurrency(row.total)
+        estimated: formatCurrency(row.total),
+        employeeId: row.employeeId
       };
     });
   }, [incentiveData]);
@@ -203,7 +206,8 @@ export default function Incentive() {
         type: `${v.employee?.department || 'GST'} Payout`,
         claimedBy: v.employee ? `${v.employee.firstName} ${v.employee.lastName}` : 'Unknown',
         amount: formatCurrency(v.amount),
-        color: avatarColors[index % avatarColors.length]
+        color: avatarColors[index % avatarColors.length],
+        employeeId: v.employee?.id
       };
     });
   }, [incentiveData]);
@@ -386,7 +390,13 @@ export default function Incentive() {
                           <td>
                             <div className="incentive-member-cell">
                               <div className="incentive-member-avatar">{row.avatar}</div>
-                              <span>{row.name}</span>
+                              <span 
+                                style={{ cursor: 'pointer' }} 
+                                className="hover:underline" 
+                                onClick={() => navigate(row.employeeId ? `/lead/employees/${row.employeeId}` : '/employees')}
+                              >
+                                {row.name}
+                              </span>
                             </div>
                           </td>
                           <td>
@@ -424,7 +434,16 @@ export default function Incentive() {
                         <span className="incentive-validation-type">{v.type} – ID #{v.id}</span>
                         <span className="incentive-validation-amount">{v.amount}</span>
                       </div>
-                      <div className="incentive-validation-claimer">Claimed by: {v.claimedBy}</div>
+                      <div className="incentive-validation-claimer">
+                        Claimed by:{' '}
+                        <span 
+                          style={{ cursor: 'pointer' }} 
+                          className="hover:underline" 
+                          onClick={() => navigate(v.employeeId ? `/lead/employees/${v.employeeId}` : '/employees')}
+                        >
+                          {v.claimedBy}
+                        </span>
+                      </div>
                       <div className="incentive-validation-actions">
                         <button
                           className={`incentive-approve-btn ${approvedIds.includes(v.id) ? 'approved' : ''}`}

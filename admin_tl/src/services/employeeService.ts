@@ -40,7 +40,8 @@ const mapEmployee = (emp: any): Employee => {
     assignedTasks: assignedTasksCount,
     completedTasks: completedTasksCount,
     pendingTasks: pendingTasksCount,
-    taskAssignments: emp.taskAssignments
+    taskAssignments: emp.taskAssignments,
+    user: emp.user
   } as any;
 };
 
