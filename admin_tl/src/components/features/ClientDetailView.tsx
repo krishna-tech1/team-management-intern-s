@@ -19,6 +19,11 @@ import { downloadCsv } from '@/lib/utils'
 import EditClientModal from "@/components/ui/EditClientModal"
 import { toast } from "@/components/ui/Toast"
 
+const buildMapsUrl = (address: string | null | undefined) => {
+  const query = (address || '').trim()
+  return `https://www.google.com/maps?q=${encodeURIComponent(query || 'India')}&output=embed`
+}
+
 export function ClientDetailView({ basePath }: { basePath: string }) {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -57,6 +62,11 @@ export function ClientDetailView({ basePath }: { basePath: string }) {
     downloadCsv(rows, `${client?.company.replace(/\s+/g,'_')}_history.csv`)
   }
 
+  const handleBack = () => {
+    const targetPath = basePath === "/clients" ? "/clients" : "/lead/clients"
+    navigate(targetPath)
+  }
+
   if (error) {
     return (
       <div className="text-center text-ink-soft py-12">
@@ -64,7 +74,7 @@ export function ClientDetailView({ basePath }: { basePath: string }) {
           <AlertCircle className="h-6 w-6" />
           <span>{error}</span>
         </div>
-        <Button variant="outline" onClick={() => navigate(basePath)}>
+        <Button variant="outline" onClick={handleBack}>
           Back to Clients
         </Button>
       </div>
@@ -85,7 +95,7 @@ export function ClientDetailView({ basePath }: { basePath: string }) {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <button onClick={() => navigate(basePath)} className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900 hover:text-amber-800">
+          <button onClick={handleBack} className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900 hover:text-amber-800">
             <ArrowLeft className="h-4 w-4" /> Back to Client List
           </button>
           <div className="flex items-center gap-4">
@@ -120,7 +130,14 @@ export function ClientDetailView({ basePath }: { basePath: string }) {
                 <p className="text-sm text-ink mt-1">—</p>
 
                 <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-ink-muted">Registered Address</p>
-                <p className="text-sm text-ink mt-1">{client.address || '—'}</p>
+                <a
+                  href={buildMapsUrl(client.address)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block text-sm text-amber-900 underline-offset-2 hover:underline"
+                >
+                  {client.address || '—'}
+                </a>
               </div>
 
               <div className="pt-4">

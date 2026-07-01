@@ -27,13 +27,13 @@ import ManageAllocation from "@/pages/admin/ManageAllocation"
 import AdminEmployeeOnboard from "@/pages/admin/EmployeeOnboarding"
 import AdminCreateTask from "@/pages/admin/CreateTask"
 import AdminDocuments from "@/pages/admin/Documents"
+import AssignTL from "@/pages/admin/AssignTL"
 
 // Lead pages (ported from JS project)
 import LeadDashboard from "@/pages/lead/Dashboard"
 import LeadEmployeeTracking from "@/pages/lead/EmployeeTracking"
 import LeadReports from "@/pages/lead/Reports"
 import LeadIncentive from "@/pages/lead/Incentive"
-import LeadSettings from "@/pages/lead/Settings"
 import LeadTasks from "@/pages/lead/Tasks"
 import LeadCreateTask from "@/pages/lead/CreateTask"
 import LeadEmployees from "@/pages/lead/Employees"
@@ -134,8 +134,8 @@ export default function App() {
           <Route index element={<AdminDocuments />} />
         </Route>
 
-        <Route path="/settings" element={<AdminLayout />}>
-          <Route index element={<LeadSettings />} />
+        <Route path="/assign-tl" element={<AdminLayout />}>
+          <Route index element={<AssignTL />} />
         </Route>
 
         {/* Lead routes — protected */}
@@ -146,10 +146,10 @@ export default function App() {
           <Route path="tasks/create" element={<LeadCreateTask />} />
           <Route path="analytics" element={<LeadReports />} />
           <Route path="incentives" element={<LeadIncentive />} />
-          <Route path="settings" element={<LeadSettings />} />
           {/* Lead employee & client views — reuse admin pages in lead layout */}
           <Route path="employees" element={<LeadEmployees />} />
           <Route path="employees/add" element={<AdminEmployeeOnboard />} />
+          <Route path="settings" element={<Navigate to="/lead" replace />} />
           <Route path="employees/:id" element={<AdminEmployeeDetail />} />
           <Route path="employees/:id/edit" element={<Suspense fallback={<div />}><AdminEmployeeEdit /></Suspense>} />
           <Route path="clients" element={<LeadClients />} />

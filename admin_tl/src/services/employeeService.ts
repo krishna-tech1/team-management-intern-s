@@ -22,21 +22,32 @@ const mapEmployee = (emp: any): Employee => {
   const completedTasksCount = emp.taskAssignments ? tasks.filter((t: any) => t.status === 'COMPLETED').length : (emp.completedTasks || 0);
   const pendingTasksCount = emp.taskAssignments ? tasks.filter((t: any) => t.status !== 'COMPLETED').length : (emp.pendingTasks || 0);
 
+  const firstName = emp.firstName || emp.name?.split(' ')[0] || '';
+  const lastName = emp.lastName || emp.name?.split(' ').slice(1).join(' ') || '';
+  const isActive = typeof emp.isActive === 'boolean' ? emp.isActive : emp.status === 'ACTIVE' || emp.status === 'Active';
+  const role = emp.user?.role || emp.role || 'EMPLOYEE';
+
   return {
     id: String(emp.id),
-    name: `${emp.firstName} ${emp.lastName}`,
+    name: `${firstName} ${lastName}`.trim() || emp.name || 'Employee',
+    firstName,
+    lastName,
     avatar: emp.profilePhotoUrl || undefined,
-    mobile: emp.phone || '',
+    mobile: emp.phone || emp.mobile || '',
     email: emp.email,
     designation: emp.designation || 'Associate',
     team: emp.department || 'Compliance',
-    status: emp.status === 'ACTIVE' ? 'Active' : 'Inactive',
+    department: emp.department || 'Compliance',
+    status: isActive ? 'Active' : 'Inactive',
+    isActive,
+    role,
+    employeeCode: emp.employeeCode || emp.employeeId || emp.id,
     score,
     incentiveEarned,
     rank: emp.rank || 1,
     tasksClosed: emp.tasksClosed || 0,
     joiningDate: emp.joiningDate ? new Date(emp.joiningDate).toISOString().split('T')[0] : '',
-    address: emp.address || '',
+    address: emp.address || emp.permanentAddress || '',
     assignedTasks: assignedTasksCount,
     completedTasks: completedTasksCount,
     pendingTasks: pendingTasksCount,

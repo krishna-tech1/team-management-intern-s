@@ -76,10 +76,15 @@ export default function AdminEmployeeDetail() {
 
   if (!emp) return null
 
-  const fullName = `${emp.firstName} ${emp.lastName}`
+  const fullName = [emp.firstName, emp.lastName].filter(Boolean).join(' ').trim() || emp.name || emp.fullName || 'Employee'
   const tasksList = (emp.taskAssignments || []).map((ta: any) => ta.task)
   const completedTasks = tasksList.filter((t: any) => t.status === 'COMPLETED').length
   const assignedTasks = tasksList.length
+  const pendingTasks = Math.max(assignedTasks - completedTasks, 0)
+  const taskCompletionPercent = assignedTasks ? Math.round((completedTasks / assignedTasks) * 100) : 0
+  const taskProgressLabel = assignedTasks
+    ? `${completedTasks} completed • ${pendingTasks} pending`
+    : 'No assigned tasks yet'
 
   return (
     <div>
@@ -92,7 +97,7 @@ export default function AdminEmployeeDetail() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-extrabold tracking-tight text-ink">{fullName}</h1>
-                <span className="rounded-md bg-line-soft px-2 py-1 text-xs font-semibold text-ink-soft">Code: {emp.employeeCode}</span>
+                <span className="rounded-md bg-line-soft px-2 py-1 text-xs font-semibold text-ink-soft">Code: {emp.employeeCode || emp.id}</span>
               </div>
               <p className="text-sm text-ink-muted mt-1">{emp.designation || 'Associate'}</p>
               <div className="mt-3">
@@ -129,15 +134,15 @@ export default function AdminEmployeeDetail() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Email Address</p>
-                <p className="text-sm text-ink mt-1">{emp.email}</p>
+                <p className="text-sm text-ink mt-1">{emp.email || '—'}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Username</p>
-                <p className="text-sm text-ink mt-1">{emp.user?.email || '—'}</p>
+                <p className="text-sm text-ink mt-1">{emp.user?.username || emp.username || emp.email || '—'}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Phone Number</p>
-                <p className="text-sm text-ink mt-1">{emp.phone || '—'}</p>
+                <p className="text-sm text-ink mt-1">{emp.phone || emp.mobile || '—'}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Date of Birth</p>
@@ -165,7 +170,7 @@ export default function AdminEmployeeDetail() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">System Role</p>
-                <p className="text-sm text-ink mt-1">{emp.user?.role || 'EMPLOYEE'}</p>
+                <p className="text-sm text-ink mt-1">{emp.role || emp.user?.role || 'EMPLOYEE'}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Assigned Department</p>
@@ -182,11 +187,12 @@ export default function AdminEmployeeDetail() {
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">TASK COMPLETION</p>
             <div className="mt-4 flex items-center justify-between">
               <div>
-                {(() => {
-                  const pct = assignedTasks ? Math.round((completedTasks / assignedTasks) * 100) : 0
-                  return <div className="text-4xl font-extrabold text-ink">{pct}%</div>
-                })()}
+                <div className="text-4xl font-extrabold text-ink">{taskCompletionPercent}%</div>
                 <div className="text-xs text-success mt-1">Assigned: {assignedTasks} | Completed: {completedTasks}</div>
+                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-line-soft">
+                  <div className="h-2 rounded-full bg-amber-500" style={{ width: `${taskCompletionPercent}%` }} />
+                </div>
+                <div className="mt-2 text-xs text-ink-soft">{taskProgressLabel}</div>
               </div>
             </div>
           </div>

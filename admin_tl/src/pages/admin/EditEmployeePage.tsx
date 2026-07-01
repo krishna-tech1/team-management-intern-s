@@ -198,7 +198,7 @@ export default function EditEmployeePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="text-xs font-semibold text-ink-muted">Full Legal Name <span className="text-rose-600">*</span></label>
-                    <input {...register('name', { required: 'Name is required' })} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
+                    <input {...register('name', { required: 'Name is required', maxLength: { value: 50, message: 'Name must be 50 characters or less' } })} maxLength={50} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
                     {errors.name && <div className="text-rose-600 text-xs mt-1">{errors.name.message}</div>}
                   </div>
                   <div>
@@ -254,6 +254,7 @@ export default function EditEmployeePage() {
                       <input
                         {...register('emailLocal', {
                           required: 'Email prefix is required',
+                          maxLength: { value: 50, message: 'Email prefix must be 50 characters or less' },
                           pattern: {
                             value: /^[a-zA-Z0-9._-]+$/,
                             message: 'Invalid characters in email prefix',
@@ -325,20 +326,21 @@ export default function EditEmployeePage() {
               <div className="px-6 pb-6 space-y-4">
                 <div>
                   <label className="text-xs font-semibold text-ink-muted">Permanent Address</label>
-                  <textarea {...register('address')} rows={3} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink" />
+                  <textarea {...register('address', { maxLength: { value: 300, message: 'Address must be 300 characters or less' } })} maxLength={300} rows={3} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink" />
+                  {errors.address && <div className="text-rose-600 text-xs mt-1">{errors.address.message}</div>}
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
                     <label className="text-xs font-semibold text-ink-muted">City</label>
-                    <input {...register('city')} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
+                    <input {...register('city', { maxLength: { value: 50, message: 'City must be 50 characters or less' } })} maxLength={50} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-ink-muted">State</label>
-                    <input {...register('state')} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
+                    <input {...register('state', { maxLength: { value: 50, message: 'State must be 50 characters or less' } })} maxLength={50} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-ink-muted">PIN Code</label>
-                    <input {...register('pinCode')} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
+                    <input {...register('pinCode', { maxLength: { value: 10, message: 'PIN code must be 10 characters or less' } })} maxLength={10} className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" />
                   </div>
                 </div>
               </div>

@@ -144,6 +144,11 @@ export default function LeadEmployees() {
     toast({ message: "Employee list exported successfully", type: "success" })
   }
 
+  const trainingRate = useMemo(() => {
+    if (stats.total === 0) return 0
+    return Math.min(100, Math.round((stats.active / stats.total) * 100))
+  }, [stats.active, stats.total])
+
   const trainingPrograms = [
     { name: "GST Compliance Training", progress: 85 },
     { name: "MCA Filing Regulations", progress: 92 },
@@ -217,7 +222,7 @@ export default function LeadEmployees() {
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-ink-soft)', textTransform: 'uppercase' }}>Training Rate</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-ink)', marginTop: 8 }}>75.5%</div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-info)', marginTop: 8 }}>3 Programs in progress</div>
+          <div style={{ fontSize: 11, color: 'var(--color-info)', marginTop: 8 }}>{trainingRate}% readiness across active members</div>
         </Card>
       </div>
 
@@ -308,14 +313,20 @@ export default function LeadEmployees() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedItems.map((emp) => (
+                  {pagedItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-10 text-center text-sm text-ink-muted">
+                        No team members match the current filters.
+                      </td>
+                    </tr>
+                  ) : pagedItems.map((emp) => (
                     <tr key={emp.id} className="border-b border-line-soft transition-colors last:border-0 hover:bg-surface-muted cursor-pointer" onClick={() => navigate(`/lead/employees/${emp.id}`)}>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
                           <Avatar name={emp.name} src={emp.avatar} size={40} />
-                          <div>
-                            <div className="text-sm font-bold text-ink leading-tight">{emp.name}</div>
-                            <div className="text-xs text-ink-muted mt-0.5">{emp.email}</div>
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-bold text-ink leading-tight">{emp.name}</div>
+                            <div className="mt-0.5 truncate text-xs text-ink-muted">{emp.email}</div>
                           </div>
                         </div>
                       </td>

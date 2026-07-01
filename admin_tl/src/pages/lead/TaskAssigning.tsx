@@ -121,6 +121,8 @@ export default function TaskAssigning() {
 
       toast({ message: `Successfully assigned "${assigningTask.name}" to ${empName}!`, type: 'success' })
 
+      setTasksList((prev) => prev.filter((task) => task.id !== assigningTask.id))
+
       // Notify other pages (Dashboard, Employees) to refresh their data
       window.dispatchEvent(new CustomEvent('tasks:changed'))
       window.dispatchEvent(new CustomEvent('employees:changed'))

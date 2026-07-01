@@ -207,13 +207,15 @@ export default function Reports() {
       if (emp.efficiency > 80) trend = 'up';
       else if (emp.efficiency < 50) trend = 'down';
 
+      const normalizedEfficiency = typeof emp.efficiency === 'number' ? emp.efficiency : 0;
+
       return {
         rank: index + 1,
         name: emp.name,
         avatar: initials,
         designation: emp.designation || 'Field Officer',
-        tasks: emp.completedTasks,
-        efficiency: `${emp.efficiency}%`,
+        tasks: emp.completedTasks ?? 0,
+        efficiency: `${normalizedEfficiency}%`,
         trend
       };
     });

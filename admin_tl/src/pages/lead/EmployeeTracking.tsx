@@ -34,6 +34,11 @@ interface Executive {
 
 const PAGE_SIZE = 4
 
+const buildMapsUrl = (location: string | null | undefined) => {
+  const query = (location || '').trim()
+  return `https://www.google.com/maps?q=${encodeURIComponent(query || 'India')}&output=embed`
+}
+
 const mapBackendToExecutive = (emp: any): Executive => {
   // Compute initials
   const nameParts = emp.name.trim().split(/\s+/);
@@ -60,14 +65,11 @@ const mapBackendToExecutive = (emp: any): Executive => {
   const checkOut = formatTime(emp.checkOutTime);
 
   // checkInStatus and checkInOk
-  let checkInStatus = '';
-  let checkInOk: boolean | null = null;
-  if (emp.trackingStatus === 'LATE') {
-    checkInStatus = 'Late';
-    checkInOk = false;
-  } else if (emp.trackingStatus === 'CHECKED_IN' || emp.trackingStatus === 'CHECKED_OUT') {
-    checkInStatus = 'On Time';
-    checkInOk = true;
+  let checkInStatus = 'On Time';
+  let checkInOk: boolean | null = true;
+  if (emp.trackingStatus === 'OFFLINE') {
+    checkInStatus = 'Pending';
+    checkInOk = null;
   }
 
   // Location address and icon
@@ -94,6 +96,14 @@ const mapBackendToExecutive = (emp: any): Executive => {
     statusClass = 'status-onsite';
   }
 
+  const checkoutRadiusValidation = (() => {
+    const rawRadius = emp.checkOutRadius ?? emp.checkoutRadius ?? emp.location?.checkOutRadius ?? emp.location?.checkoutRadius ?? emp.radius;
+    if (rawRadius === null || rawRadius === undefined || rawRadius === '') {
+      return 'Checkout radius validation pending';
+    }
+    return `Checkout radius validated within ${rawRadius}m`;
+  })();
+
   return {
     id: String(emp.id),
     name: emp.name,
@@ -106,7 +116,8 @@ const mapBackendToExecutive = (emp: any): Executive => {
     location,
     locationIcon,
     status,
-    statusClass
+    statusClass,
+    checkoutRadiusValidation
   };
 };
 
@@ -138,6 +149,10 @@ export default function EmployeeTracking() {
 
   useEffect(() => {
     fetchTrackingData();
+    const interval = window.setInterval(() => {
+      fetchTrackingData(false);
+    }, 20000);
+    return () => window.clearInterval(interval);
   }, []);
 
   const rows = useMemo(() => {
@@ -148,27 +163,31 @@ export default function EmployeeTracking() {
     if (backendData.length === 0) {
       return {
         checkedIn: '0/0',
-        lateArrival: '00',
         activeRoutes: '00',
         avgProductivity: '0.0%'
       };
     }
     const checkedInCount = backendData.filter(e => e.trackingStatus === 'CHECKED_IN' || e.trackingStatus === 'LATE').length;
     const totalCount = backendData.length;
-    
-    const lateCount = backendData.filter(e => e.trackingStatus === 'LATE').length;
     const activeCount = backendData.filter(e => e.currentTask !== null).length;
     const avgProductivity = (backendData.reduce((acc, e) => acc + e.attendancePct, 0) / totalCount).toFixed(1) + '%';
 
     return {
       checkedIn: `${checkedInCount}/${totalCount}`,
-      lateArrival: String(lateCount).padStart(2, '0'),
       activeRoutes: String(activeCount).padStart(2, '0'),
       avgProductivity
     };
   }, [backendData]);
 
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+
+  const mapQuery = useMemo(() => {
+    const firstLocation = backendData.find((entry) => entry?.location?.checkInAddress || entry?.location?.checkOutAddress || entry?.location)
+    const fallback = firstLocation?.location?.checkInAddress || firstLocation?.location?.checkOutAddress || firstLocation?.location || 'India'
+    return typeof fallback === 'string' ? fallback : 'India'
+  }, [backendData])
+
+  const hasLiveMapLocation = useMemo(() => Boolean(mapQuery && mapQuery !== 'India'), [mapQuery])
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -222,18 +241,6 @@ export default function EmployeeTracking() {
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2bb673" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" /><path d="M9 12l2 2 4-4" />
-        </svg>
-      ),
-    },
-    {
-      id: 'lateArrival',
-      label: 'LATE ARRIVAL',
-      value: stats.lateArrival,
-      iconBg: '#fff4e0',
-      icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e0941a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-          <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       ),
     },
@@ -299,6 +306,43 @@ export default function EmployeeTracking() {
         </div>
       ) : (
         <>
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-ink">Employee Locations</h3>
+                <p className="text-xs text-ink-muted">Live addresses from the tracking feed</p>
+              </div>
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">Google Maps</span>
+            </div>
+            <div className="overflow-hidden rounded-lg border border-line">
+              <iframe
+                title="Employee location map"
+                src={buildMapsUrl(mapQuery)}
+                className="h-64 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            {!hasLiveMapLocation && (
+              <div className="mt-3 rounded-lg border border-dashed border-line bg-surface px-3 py-2 text-xs text-ink-muted">
+                No live location data is available yet. The map will update automatically when addresses arrive.
+              </div>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {rows.slice(0, 5).map((exec) => (
+                <a
+                  key={exec.id}
+                  href={buildMapsUrl(exec.location)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-muted"
+                >
+                  {exec.name}: {exec.location}
+                </a>
+              ))}
+            </div>
+          </div>
+
           {/* Stat Cards */}
           <div className="tracking-stat-cards">
             {statCards.map((card) => (
@@ -332,7 +376,7 @@ export default function EmployeeTracking() {
               <table className="tracking-exec-table">
                 <thead>
                   <tr>
-                    <th>EMPLOYEE</th><th>CHECK-IN</th><th>CHECK-OUT</th>
+                    <th>EMPLOYEE</th><th>CHECK-IN TIME</th><th>CHECK-OUT</th>
                     <th>LOCATION</th><th>STATUS</th><th>ACTIONS</th>
                   </tr>
                 </thead>
@@ -363,6 +407,11 @@ export default function EmployeeTracking() {
                                 {exec.checkInStatus}
                               </span>
                             )}
+                            {exec.checkoutRadiusValidation && (
+                              <span className="tracking-checkin-status on-time" style={{ marginTop: 4 }}>
+                                {exec.checkoutRadiusValidation}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="tracking-checkout">{exec.checkOut}</td>
@@ -377,7 +426,14 @@ export default function EmployeeTracking() {
                             {exec.locationIcon === 'home' && (
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a8fa3" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             )}
-                            <span>{exec.location}</span>
+                            <a
+                              href={buildMapsUrl(exec.location)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="max-w-[220px] break-all text-amber-900 underline-offset-2 hover:underline"
+                            >
+                              {exec.location}
+                            </a>
                           </div>
                         </td>
                         <td>

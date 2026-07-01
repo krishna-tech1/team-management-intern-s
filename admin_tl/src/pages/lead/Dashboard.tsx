@@ -102,10 +102,14 @@ export default function LeadDashboard() {
       .map((emp, index) => ({
         rank: index + 1,
         name: emp.name,
-        amount: `₹${(emp.incentiveEarned || 0).toLocaleString()}`,
+        amount: (emp.incentiveEarned && emp.incentiveEarned > 0)
+          ? `₹${emp.incentiveEarned.toLocaleString()}`
+          : 'Pending sync',
         progress: emp.score,
       }))
   }, [employeesList])
+
+  const inactiveStaffCount = useMemo(() => employeesList.filter(e => e.status !== 'Active').length, [employeesList])
 
   const activeStaffCount = useMemo(() => {
     return employeesList.filter(e => e.status === 'Active').length
@@ -132,7 +136,7 @@ export default function LeadDashboard() {
         'Performance Score (%)': `${emp.score}%`,
         'Assigned Tasks': emp.assignedTasks,
         'Incentives Earned (INR)': `₹${(emp.incentiveEarned || 0).toLocaleString()}`,
-        'Attention Required': attentionRow ? attentionRow.status : 'None',
+        'Table': attentionRow ? attentionRow.status : 'None',
         'Total Team Incentives Forecast': index === 0 ? `₹${totalIncentives.toLocaleString()}` : '',
         'Total Tasks Assigned': index === 0 ? assignedTasksCount : '',
         'Total Tasks Unassigned': index === 0 ? unassignedTasksCount : '',
@@ -150,7 +154,10 @@ export default function LeadDashboard() {
       setShowAssignModal(true)
     } else {
       const emp = employeesList.find(e => e.id === employeeId)
-      alert(`Reviewing work/profile for ${emp ? emp.name : 'employee'}...`)
+      toast({
+        message: emp ? `Reviewing ${emp.name}'s profile and next steps.` : 'Reviewing employee profile.',
+        type: 'info',
+      })
     }
   }
 
@@ -227,15 +234,15 @@ export default function LeadDashboard() {
               <div className="overview-stat-desc">{employeesList.filter(e => e.status !== 'Active').length} Inactive</div>
             </div>
 
-            <div className="overview-stat-card overview-stat-dark cursor-pointer hover:border-amber/50 transition-colors" onClick={() => navigate('/lead/analytics')}>
+            <div className="overview-stat-card cursor-pointer hover:border-amber transition-colors" onClick={() => navigate('/lead/employees')}>
               <div className="overview-stat-header">
-                <div className="overview-stat-icon-box" style={{ background: '#3b3b3b', color: '#b89047' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div className="overview-stat-icon-box" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
               </div>
-              <div className="overview-stat-label">AVG HANDLING TIME</div>
-              <div className="overview-stat-value">42m 15s</div>
-              <div className="overview-stat-desc">SLA response target met</div>
+              <div className="overview-stat-label">ACTIVE TEAM MEMBERS</div>
+              <div className="overview-stat-value">{activeStaffCount}</div>
+              <div className="overview-stat-desc">Active members vs {inactiveStaffCount} inactive</div>
             </div>
           </div>
 
@@ -312,40 +319,6 @@ export default function LeadDashboard() {
             </div>
 
             <div className="overview-right-col">
-              {/* Map Widget */}
-              <div className="overview-map-card" onClick={() => navigate('/lead/tracking')}>
-                <div className="overview-map-header">
-                  <div>
-                    <h3 className="overview-map-title">Regional Spread</h3>
-                    <p className="overview-map-subtitle">Live tracking of on-field agents</p>
-                  </div>
-                  <span className="overview-live-badge"><span className="live-dot" /> LIVE</span>
-                </div>
-                <div className="overview-map-area">
-                  <div className="map-pin" style={{ top: '20%', left: '30%' }} />
-                  <div className="map-pin" style={{ top: '40%', left: '70%' }} />
-                  <div className="map-pin" style={{ top: '60%', left: '40%' }} />
-                  <div className="map-pin" style={{ top: '35%', left: '50%' }} />
-                  <div className="map-pin" style={{ top: '70%', left: '60%' }} />
-                  <div className="overview-map-agents-overlay">
-                    <div className="agents-overlay-header">
-                      <span>Active Agents</span>
-                      <span className="agents-online-count">{activeStaffCount} Online</span>
-                    </div>
-                    <div className="agents-avatars-group">
-                      {employeesList.slice(0, 3).map((emp) => (
-                        <div key={emp.id} className="agent-avatar" title={emp.name}>
-                          <Avatar name={emp.name} src={emp.avatar} size={24} />
-                        </div>
-                      ))}
-                      {employeesList.length > 3 && (
-                        <div className="agent-avatar-more">+{employeesList.length - 3}</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Leaderboard */}
               <div className="overview-card leaderboard-card">
                 <div className="leaderboard-header">

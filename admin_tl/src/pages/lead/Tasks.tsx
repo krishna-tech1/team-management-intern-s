@@ -91,10 +91,11 @@ export default function LeadTasks() {
     })
   }, [debouncedQ, filterStatus, filterPriority, tasksList])
 
-  const notStartedTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Not Started'), [filteredTasks])
+  const pendingTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Pending'), [filteredTasks])
   const inProgressTasks = useMemo(() => filteredTasks.filter(t => t.status === 'In Progress'), [filteredTasks])
-  const waitingForClientTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Waiting For Client'), [filteredTasks])
+  const waitingForClientTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Waiting for Client'), [filteredTasks])
   const reviewTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Review'), [filteredTasks])
+  const completedTasks = useMemo(() => filteredTasks.filter(t => t.status === 'Completed'), [filteredTasks])
 
   return (
     <div>
@@ -121,11 +122,11 @@ export default function LeadTasks() {
               </div>
               <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value) }} className="h-10 rounded-lg border border-line bg-surface px-3 text-sm w-full md:w-auto">
                 <option value="">All Statuses</option>
-                <option>Not Started</option>
+                <option>Pending</option>
                 <option>In Progress</option>
-                <option>Waiting For Client</option>
+                <option>Waiting for Client</option>
+                <option>Review</option>
                 <option>Completed</option>
-                <option>Overdue</option>
               </select>
               <select value={filterPriority} onChange={(e) => { setFilterPriority(e.target.value) }} className="h-10 rounded-lg border border-line bg-surface px-3 text-sm w-full md:w-auto">
                 <option value="">All Priorities</option>
@@ -144,25 +145,25 @@ export default function LeadTasks() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="h-2 w-2 rounded-full bg-ink-muted inline-block"></span>
-                <div className="text-sm font-semibold uppercase text-ink-muted">NOT STARTED</div>
-                <div className="ml-2 text-xs bg-white px-2 py-1 rounded text-ink">{notStartedTasks.length}</div>
+                <div className="text-sm font-semibold uppercase text-ink-muted">PENDING</div>
+                <div className="ml-2 text-xs bg-white px-2 py-1 rounded text-ink">{pendingTasks.length}</div>
               </div>
               <div className="text-sm text-ink-muted">...</div>
             </div>
 
             <div className="flex items-stretch gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-line/55 scrollbar-track-transparent" style={{ scrollBehavior: 'smooth' }}>
-              {notStartedTasks.map((t) => (
+              {pendingTasks.map((t) => (
                 <div key={t.id} className="w-[320px] md:w-[400px] flex-shrink-0">
                   <Card className="p-6 cursor-pointer h-full hover:border-amber transition-colors flex flex-col justify-between" onClick={() => openTask(t)}>
                     <div className="flex items-start justify-between gap-4">
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="inline-block px-2 py-1 rounded text-xs font-semibold bg-amber/10 text-amber-700">GST GSTR-1</div>
-                        <div className="text-lg font-bold text-ink mt-3 leading-snug">{t.name}</div>
-                        <div className="text-sm text-ink-muted mt-2">Client: {t.client}</div>
+                        <div className="mt-3 text-lg font-bold text-ink leading-snug break-words">{t.name}</div>
+                        <div className="mt-2 truncate text-sm text-ink-muted">Client: {t.client}</div>
                       </div>
                       <div className="text-sm text-ink-muted text-right flex-shrink-0">
                         <div className="text-xs text-amber-700 font-semibold">{t.priority}</div>
-                        <div className="mt-6 text-sm flex items-center gap-1 justify-end"><Calendar className="h-4 w-4 text-ink-muted" /> {t.dueDate}</div>
+                        <div className="mt-6 flex items-center justify-end gap-1 text-sm"><Calendar className="h-4 w-4 text-ink-muted" /> {t.dueDate}</div>
                       </div>
                     </div>
                     <div className="mt-6 flex items-end">
@@ -173,16 +174,16 @@ export default function LeadTasks() {
                   </Card>
                 </div>
               ))}
-              {notStartedTasks.length === 0 && (
+              {pendingTasks.length === 0 && (
                 <div className="w-full py-8 text-center text-sm text-ink-muted bg-white/30 rounded-lg border border-dashed border-line">
-                  No Not Started tasks found.
+                  No pending tasks match the current view.
                 </div>
               )}
             </div>
           </div>
 
           {/* Lower columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <div>
               <div className="text-sm font-semibold uppercase text-ink-muted mb-3 flex items-center justify-between"><span>IN PROGRESS</span><span className="text-xs bg-white px-2 py-1 rounded text-ink">{inProgressTasks.length}</span></div>
               <div className="space-y-4">
@@ -242,6 +243,26 @@ export default function LeadTasks() {
                 ))}
                 {reviewTasks.length === 0 && (
                   <div className="text-xs text-ink-muted text-center py-4 border border-dashed border-line rounded">No tasks in review.</div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-sm font-semibold uppercase text-ink-muted mb-3 flex items-center justify-between"><span>COMPLETED</span><span className="text-xs bg-white px-2 py-1 rounded text-ink">{completedTasks.length}</span></div>
+              <div className="space-y-4">
+                {completedTasks.map(t => (
+                  <Card key={t.id} className="p-4 cursor-pointer hover:border-amber transition-colors" onClick={() => openTask(t)}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-sm font-bold text-ink">{t.name}</div>
+                        <div className="text-xs text-ink-muted mt-1">Client: {t.client}</div>
+                      </div>
+                      <div className="text-xs text-ink-muted flex items-center gap-1"><Calendar className="h-3 w-3 text-ink-muted" /> {t.dueDate}</div>
+                    </div>
+                  </Card>
+                ))}
+                {completedTasks.length === 0 && (
+                  <div className="text-xs text-ink-muted text-center py-4 border border-dashed border-line rounded">No completed tasks.</div>
                 )}
               </div>
             </div>

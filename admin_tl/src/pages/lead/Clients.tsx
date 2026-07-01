@@ -465,29 +465,6 @@ export default function LeadClients() {
 
         {/* Sidebar Widgets */}
         <div className="lg:col-span-1 space-y-4">
-          {/* Regional concentration */}
-          <Card className="p-4">
-            <h4 className="text-sm font-bold text-ink mb-3 uppercase tracking-wider">Client Concentration Map</h4>
-            <div className="space-y-3">
-              {[
-                { name: "West (Maharashtra)", percent: 45, color: "var(--color-amber)" },
-                { name: "South (Karnataka/TS)", percent: 30, color: "#3d7cf0" },
-                { name: "North (Delhi NCR)", percent: 15, color: "#16a34a" },
-                { name: "East / Others", percent: 10, color: "#8b5cf6" },
-              ].map((reg) => (
-                <div key={reg.name} className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-ink-soft">
-                    <span>{reg.name}</span>
-                    <span className="text-ink font-bold">{reg.percent}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${reg.percent}%`, backgroundColor: reg.color }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
           {/* Upcoming Task Deadlines */}
           <Card className="p-4">
             <h4 className="text-sm font-bold text-ink mb-3 uppercase tracking-wider">Upcoming Deadlines</h4>

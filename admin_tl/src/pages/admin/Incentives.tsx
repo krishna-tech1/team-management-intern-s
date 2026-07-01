@@ -35,21 +35,29 @@ export default function AdminIncentives() {
   const [modalA, setModalA] = useState(gradeAVal)
   const [modalB, setModalB] = useState(gradeBVal)
   const [modalC, setModalC] = useState(gradeCVal)
+  const [modalError, setModalError] = useState<string | null>(null)
 
   const openModal = () => {
     setModalA(gradeAVal)
     setModalB(gradeBVal)
     setModalC(gradeCVal)
+    setModalError(null)
     setIsEditModalOpen(true)
   }
 
   const handleSaveGrades = () => {
+    if ([modalA, modalB, modalC].some((value) => Number.isNaN(Number(value)) || Number(value) < 0)) {
+      setModalError('Amount values must be zero or greater.')
+      return
+    }
+
     localStorage.setItem('gradeAVal', String(modalA))
     localStorage.setItem('gradeBVal', String(modalB))
     localStorage.setItem('gradeCVal', String(modalC))
-    setGradeAVal(modalA)
-    setGradeBVal(modalB)
-    setGradeCVal(modalC)
+    setGradeAVal(Number(modalA))
+    setGradeBVal(Number(modalB))
+    setGradeCVal(Number(modalC))
+    setModalError(null)
     setIsEditModalOpen(false)
   }
 
@@ -380,10 +388,14 @@ export default function AdminIncentives() {
             <CardHeader title="Edit Payout Grades" />
             <div className="px-6 pb-6">
               <div className="space-y-4 mb-6">
+                {modalError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{modalError}</div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">Grade A Amount (₹)</label>
                   <input
                     type="number"
+                    min="0"
                     value={modalA}
                     onChange={(e) => setModalA(Number(e.target.value))}
                     className="w-full h-10 rounded-lg border border-line bg-surface px-3 text-sm text-ink"
@@ -393,6 +405,7 @@ export default function AdminIncentives() {
                   <label className="block text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">Grade B Amount (₹)</label>
                   <input
                     type="number"
+                    min="0"
                     value={modalB}
                     onChange={(e) => setModalB(Number(e.target.value))}
                     className="w-full h-10 rounded-lg border border-line bg-surface px-3 text-sm text-ink"
@@ -402,6 +415,7 @@ export default function AdminIncentives() {
                   <label className="block text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">Grade C Amount (₹)</label>
                   <input
                     type="number"
+                    min="0"
                     value={modalC}
                     onChange={(e) => setModalC(Number(e.target.value))}
                     className="w-full h-10 rounded-lg border border-line bg-surface px-3 text-sm text-ink"

@@ -43,6 +43,8 @@ export default function CreateTask() {
   function validate() {
     const err: Record<string,string> = {}
     if (!name.trim()) err.name = 'Task title is required'
+    else if (name.trim().length > 100) err.name = 'Task title must be 100 characters or less'
+    if (description.trim().length > 500) err.description = 'Description must be 500 characters or less'
     if (!client) err.client = 'Select a client'
     setErrors(err)
     return Object.keys(err).length === 0
@@ -82,15 +84,15 @@ export default function CreateTask() {
   return (
     <div>
       <PageHeader title="Create New Compliance Task" subtitle="Initiate a systematic filing workflow for GST or MCA requirements." />
-      <div className="mt-6 grid grid-cols-12 gap-6 px-6">
-        <div className="col-span-8">
+      <div className="mt-6 grid grid-cols-1 gap-6 overflow-x-hidden px-3 md:px-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <div className="w-full xl:col-span-8">
           <Card>
             <CardHeader title="Task Details" />
             <div className="px-6 pb-6">
               <div className="space-y-4">
                 <div>
                   <label className="text-xs font-semibold text-ink-muted">Task Title</label>
-                  <input value={name} onChange={(e) => { setName(e.target.value); setDirty(true) }} placeholder="e.g., Q3 GST Filing for Zenith Tech" className="mt-1 h-12 w-full rounded-lg border border-line px-3 bg-white text-sm" />
+                  <input value={name} onChange={(e) => { setName(e.target.value); setDirty(true) }} maxLength={100} placeholder="e.g., Q3 GST Filing for Zenith Tech" className="mt-1 h-12 w-full rounded-lg border border-line px-3 bg-white text-sm" />
                   {errors.name && <div className="text-rose-600 text-sm mt-1">{errors.name}</div>}
                 </div>
 
@@ -115,7 +117,8 @@ export default function CreateTask() {
 
                 <div>
                   <label className="text-xs font-semibold text-ink-muted">Description</label>
-                  <textarea value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true) }} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-3 text-sm" rows={4} />
+                  <textarea value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true) }} maxLength={500} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-3 text-sm" rows={4} />
+                  {errors.description && <div className="text-rose-600 text-sm mt-1">{errors.description}</div>}
                 </div>
               </div>
             </div>
@@ -143,7 +146,7 @@ export default function CreateTask() {
           </Card>
         </div>
 
-        <div className="col-span-4 space-y-6">
+        <div className="w-full space-y-6 xl:col-span-4">
           <Card>
             <CardHeader title="Assignment" />
             <div className="px-6 pb-6">

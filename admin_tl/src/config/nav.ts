@@ -8,8 +8,8 @@ import {
   Building2,
   ClipboardList,
   MapPin,
-  Settings,
   FolderOpen,
+  UserRoundPlus,
 } from "lucide-react"
 import type { NavItem } from "@/components/layout/Sidebar"
 
@@ -19,6 +19,7 @@ export const adminNav: NavItem[] = [
   { label: "Employees", to: "/employees", icon: Users },
   { label: "Clients", to: "/clients", icon: Building2 },
   { label: "Tasks", to: "/tasks", icon: ListChecks },
+  { label: "Assign TL", to: "/assign-tl", icon: UserRoundPlus },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Documents", to: "/documents", icon: FolderOpen },
 ]
@@ -31,5 +32,4 @@ export const leadNav: NavItem[] = [
   { label: "Employee Tracking", to: "/lead/tracking", icon: MapPin },
   { label: "Analytics", to: "/lead/analytics", icon: BarChart3 },
   { label: "Incentives", to: "/lead/incentives", icon: BadgePercent },
-  { label: "Settings", to: "/lead/settings", icon: Settings },
 ]

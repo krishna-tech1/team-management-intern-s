@@ -152,11 +152,11 @@ export default function AdminEmployees() {
           <Spinner size={32} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 px-3 md:px-6 lg:grid-cols-4">
           <div className="lg:col-span-3">
             <Card className="mt-2">
               <div className="relative">
-                <div className="mb-4 flex items-center justify-between gap-4 px-6 pt-6">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <button onClick={(e) => { e.stopPropagation(); setShowStatusDropdown((s) => !s) }} className="rounded-lg border border-line bg-white px-4 py-3 text-sm text-ink flex items-center gap-2">Status: <strong className="ml-2">{statusFilter === 'All' ? 'All' : statusFilter}</strong></button>

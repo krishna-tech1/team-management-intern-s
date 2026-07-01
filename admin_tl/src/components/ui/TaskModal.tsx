@@ -32,7 +32,26 @@ export function TaskModal({ task, open, onClose, onSave, onDelete }: {
     setForm((f: any) => f ? ({ ...f, [k]: v }) : f)
   }
 
-  const mappedStatus = form.status
+  const normalizeStatus = (value?: string) => {
+    switch (value) {
+      case 'Pending':
+      case 'Not Started':
+        return 'Pending'
+      case 'In Progress':
+        return 'In Progress'
+      case 'Waiting For Client':
+      case 'Waiting for Client':
+        return 'Waiting for Client'
+      case 'Review':
+        return 'Review'
+      case 'Completed':
+        return 'Completed'
+      default:
+        return 'Pending'
+    }
+  }
+
+  const mappedStatus = normalizeStatus(form.status)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -53,11 +72,11 @@ export function TaskModal({ task, open, onClose, onSave, onDelete }: {
             <div>
               <label className="text-xs font-semibold text-ink-muted">Status</label>
               <select className="mt-1 h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink" value={mappedStatus} onChange={(e) => update('status', e.target.value as any)}>
-                <option>Not Started</option>
+                <option>Pending</option>
                 <option>In Progress</option>
-                <option>Waiting For Client</option>
+                <option>Waiting for Client</option>
+                <option>Review</option>
                 <option>Completed</option>
-                <option>Overdue</option>
               </select>
             </div>
 
@@ -99,7 +118,7 @@ export function TaskModal({ task, open, onClose, onSave, onDelete }: {
           <div className="mt-6 flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose}>Close</Button>
             <Button variant="outline" onClick={() => { if (form) { setLoading(true); onDelete(form.id); setLoading(false); onClose() } }} loading={loading}>Delete</Button>
-            <Button variant="primary" loading={loading} onClick={() => { if (form) { setLoading(true); onSave(form); setLoading(false); onClose() } }}>Save</Button>
+            <Button variant="primary" loading={loading} onClick={() => { if (form) { setLoading(true); onSave({ ...form, status: mappedStatus }); setLoading(false); onClose() } }}>Save</Button>
           </div>
         </div>
       </Card>

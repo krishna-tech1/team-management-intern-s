@@ -25,14 +25,14 @@ const mapPriority = (p: string): any => {
 
 const mapStatus = (s: string): any => {
   const map: Record<string, string> = {
-    'PENDING': 'Not Started',
+    'PENDING': 'Pending',
+    'NOT_STARTED': 'Pending',
     'IN_PROGRESS': 'In Progress',
     'COMPLETED': 'Completed',
-    'OVERDUE': 'Overdue',
-    'WAITING_FOR_CLIENT': 'Waiting For Client',
+    'WAITING_FOR_CLIENT': 'Waiting for Client',
     'REVIEW': 'Review'
   };
-  return map[s] || 'Not Started';
+  return map[s] || 'Pending';
 };
 
 const mapTask = (task: any): Task => {
@@ -75,7 +75,10 @@ export const taskService = {
       priority: task.priority || 'MEDIUM',
       dueDate: task.dueDate || new Date().toISOString(),
       clientId: task.clientId,
-      assignedEmployeeId: task.assignedEmployeeId
+      assignedEmployeeId: task.assignedEmployeeId,
+      notes: task.notes || '',
+      progressUpdate: task.progressUpdate || '',
+      documentName: task.documentName || ''
     };
     const raw = await apiClient.post(`${getPrefix()}/tasks`, payload);
     return mapTask(raw);
@@ -87,11 +90,10 @@ export const taskService = {
     if (anyUpdates.shortNote !== undefined) payload.description = anyUpdates.shortNote;
     if (anyUpdates.status) {
       const map: Record<string, string> = {
-        'Not Started': 'PENDING',
+        'Pending': 'PENDING',
         'In Progress': 'IN_PROGRESS',
         'Completed': 'COMPLETED',
-        'Overdue': 'OVERDUE',
-        'Waiting For Client': 'WAITING_FOR_CLIENT',
+        'Waiting for Client': 'WAITING_FOR_CLIENT',
         'Review': 'REVIEW'
       };
       payload.status = map[anyUpdates.status];

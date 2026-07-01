@@ -37,6 +37,7 @@ export default function AdminDocuments() {
   const [clientId, setClientId] = useState('')
   const [employeeId, setEmployeeId] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadMode, setUploadMode] = useState<'DOCUMENT' | 'CSV'>('DOCUMENT')
 
   const loadData = async () => {
     setLoading(true)
@@ -100,6 +101,11 @@ export default function AdminDocuments() {
       return
     }
 
+    if (uploadMode === 'CSV' && !selectedFile.name.toLowerCase().endsWith('.csv')) {
+      toast({ type: 'error', message: 'Please select a CSV file for bulk upload' })
+      return
+    }
+
     if (selectedFile.size > 10 * 1024 * 1024) {
       toast({ type: 'error', message: 'File size exceeds maximum 10MB limit' })
       return
@@ -118,7 +124,7 @@ export default function AdminDocuments() {
         employeeId: employeeId ? Number(employeeId) : undefined
       })
 
-      toast({ type: 'success', message: 'Document uploaded successfully' })
+      toast({ type: 'success', message: uploadMode === 'CSV' ? 'CSV uploaded successfully' : 'Document uploaded successfully' })
       setUploadOpen(false)
       setSelectedFile(null)
       setClientId('')
@@ -132,8 +138,8 @@ export default function AdminDocuments() {
   }
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="px-3 md:px-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-ink">Document Repository</h1>
           <p className="mt-1 text-sm text-ink-soft">Repository management and file details.</p>
@@ -229,6 +235,7 @@ export default function AdminDocuments() {
                     placeholder="Search documents by name, client, or uploader..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    maxLength={100}
                     className="h-10 w-full pl-10 pr-4 rounded-lg border border-line bg-surface text-sm text-ink focus:outline-none focus:border-amber"
                   />
                 </div>
@@ -329,6 +336,16 @@ export default function AdminDocuments() {
             <form onSubmit={handleUploadSubmit} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1">
+                  Upload Type
+                </label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setUploadMode('DOCUMENT')} className={`rounded-lg border px-3 py-2 text-sm ${uploadMode === 'DOCUMENT' ? 'border-amber bg-amber-50 text-gold-dark' : 'border-line bg-white text-ink'}`}>Document</button>
+                  <button type="button" onClick={() => setUploadMode('CSV')} className={`rounded-lg border px-3 py-2 text-sm ${uploadMode === 'CSV' ? 'border-amber bg-amber-50 text-gold-dark' : 'border-line bg-white text-ink'}`}>CSV</button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1">
                   Select File (Max 10MB)
                 </label>
                 <input
@@ -337,6 +354,7 @@ export default function AdminDocuments() {
                   required
                   disabled={uploading}
                   className="w-full rounded-lg border border-line bg-surface p-2.5 text-sm text-ink focus:outline-none focus:border-amber"
+                  accept={uploadMode === 'CSV' ? '.csv' : '.pdf,.doc,.docx,.jpg,.jpeg,.png'}
                 />
               </div>
 

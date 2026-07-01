@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { DonutChart } from '@/components/ui/DonutChart'
 import { Avatar } from '@/components/ui/Avatar'
-import { Search, AlertCircle } from 'lucide-react'
+import { Search, AlertCircle, Filter } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { DashboardGrid } from '@/components/ui/ResponsiveGrid'
 import { clientService } from '@/services/clientService'
@@ -162,13 +162,15 @@ export default function AdminAnalytics() {
 
       <Card className="mt-6">
         <div className="p-4">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 text-ink-muted" />
-              <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} placeholder="Filter by Client or Task..." className="pl-10 h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" />
+              <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} placeholder="Search clients or tasks" className="pl-10 h-11 w-full rounded-lg border border-line bg-white px-3 text-sm" />
             </div>
-            <button className="h-11 px-4 rounded-lg border border-line bg-surface text-sm w-full md:w-auto">Advanced Filters</button>
-            <div className="mt-2 md:mt-0 ml-0 md:ml-auto flex items-center gap-2 text-sm text-ink-muted">Sort by: <select className="ml-2 h-9 rounded border border-line bg-white px-2 w-full md:w-auto"><option>Latest Activity</option></select></div>
+            <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink-muted">
+              <Filter className="h-4 w-4" />
+              <span>Showing current task activity</span>
+            </div>
           </div>
         </div>
 

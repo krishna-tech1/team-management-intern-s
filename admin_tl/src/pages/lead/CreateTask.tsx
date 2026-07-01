@@ -19,6 +19,9 @@ export default function LeadCreateTask() {
   const [dueDate, setDueDate] = useState('')
   const [client, setClient] = useState('')
   const [assignedEmployeeId, setAssignedEmployeeId] = useState<string>('')
+  const [uploadDocument, setUploadDocument] = useState('')
+  const [notes, setNotes] = useState('')
+  const [progressUpdate, setProgressUpdate] = useState('')
 
   const [clientsList, setClientsList] = useState<any[]>([])
   const [employeesList, setEmployeesList] = useState<any[]>([])
@@ -58,7 +61,10 @@ export default function LeadCreateTask() {
         priority: dbPriority,
         dueDate: dueDate ? new Date(dueDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         clientId: parseInt(client),
-        assignedEmployeeId: assignedEmployeeId ? parseInt(assignedEmployeeId) : undefined
+        assignedEmployeeId: assignedEmployeeId ? parseInt(assignedEmployeeId) : undefined,
+        notes,
+        progressUpdate,
+        documentName: uploadDocument
       }
 
       await taskService.createTask(payload as any)
@@ -115,6 +121,21 @@ export default function LeadCreateTask() {
                 <div>
                   <label className="text-xs font-semibold text-ink-muted">Description</label>
                   <textarea value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true) }} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-3 text-sm" rows={4} />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink-muted">Upload Document</label>
+                  <input value={uploadDocument} onChange={(e) => { setUploadDocument(e.target.value); setDirty(true) }} placeholder="Document name or link" className="mt-1 h-10 w-full rounded-lg border border-line px-3 bg-white text-sm" />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink-muted">Notes</label>
+                  <textarea value={notes} onChange={(e) => { setNotes(e.target.value); setDirty(true) }} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-3 text-sm" rows={3} />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink-muted">Progress Update</label>
+                  <textarea value={progressUpdate} onChange={(e) => { setProgressUpdate(e.target.value); setDirty(true) }} className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-3 text-sm" rows={3} />
                 </div>
               </div>
             </div>
