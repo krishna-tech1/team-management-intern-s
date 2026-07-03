@@ -120,3 +120,46 @@ export const setIncentiveFreeze = async (month: string, isFrozen: boolean, perfo
 
   return record;
 };
+
+export const updateIncentive = async (
+  incentiveId: number,
+  data: { amount?: number; status?: string; month?: string },
+  performedBy: string
+) => {
+  const incentive = await prisma.incentive.findUnique({ where: { id: incentiveId } });
+  if (!incentive) throw new Error('Incentive not found');
+
+  if (data.amount !== undefined && data.amount <= 0) {
+    throw new Error('Incentive amount must be positive');
+  }
+
+  if (data.month !== undefined) {
+    const monthRegex = /^\d{4}-\d{2}$/;
+    if (!monthRegex.test(data.month)) {
+      throw new Error('Invalid month format. Please use YYYY-MM');
+    }
+  }
+
+  const updated = await prisma.incentive.update({
+    where: { id: incentiveId },
+    data: {
+      ...(data.amount !== undefined && { amount: data.amount }),
+      ...(data.status && { status: data.status }),
+      ...(data.month && { month: data.month }),
+    },
+    include: {
+      employee: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+  });
+
+  await createAuditLog(
+    `Incentive ${incentiveId} updated by ${performedBy}`,
+    performedBy,
+    'Incentive',
+    incentiveId
+  );
+
+  return updated;
+};

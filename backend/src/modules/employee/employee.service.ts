@@ -621,6 +621,40 @@ async function buildMonthlyProductivity(employeeId: number, months: number) {
 
 // ─── INCENTIVES ───────────────────────────────────────────────────────────────
 
+export const getEmployeeProgress = async (userId: number) => {
+  const employee = await getEmployeeByUserId(userId);
+
+  const [taskCount, completedTaskCount, workUpdateCount, documentCount, incentiveCount] = await Promise.all([
+    prisma.task.count({ where: { assignedEmployeeId: employee.id, isDeleted: false } }),
+    prisma.task.count({ where: { assignedEmployeeId: employee.id, status: 'COMPLETED', isDeleted: false } }),
+    prisma.taskWorkUpdate.count({ where: { employeeId: employee.id } }),
+    prisma.document.count({ where: { employeeId: employee.id } }),
+    prisma.incentive.count({ where: { employeeId: employee.id } }),
+  ]);
+
+  const completionRatio = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
+  const updateRatio = taskCount > 0 ? Math.round((workUpdateCount / taskCount) * 100) : 0;
+  const documentRatio = taskCount > 0 ? Math.round((documentCount / taskCount) * 100) : 0;
+  const incentiveRatio = incentiveCount > 0 ? 100 : 0;
+  const progress = Math.round((completionRatio * 0.4) + (updateRatio * 0.25) + (documentRatio * 0.2) + (incentiveRatio * 0.15));
+
+  return {
+    employeeId: employee.id,
+    taskCount,
+    completedTaskCount,
+    workUpdateCount,
+    documentCount,
+    incentiveCount,
+    progress,
+    breakdown: {
+      taskCompletion: completionRatio,
+      updates: updateRatio,
+      documents: documentRatio,
+      incentives: incentiveRatio,
+    },
+  };
+};
+
 export const getEmployeeIncentives = async (userId: number) => {
   const employee = await getEmployeeByUserId(userId);
 
@@ -773,7 +807,6 @@ export const checkOut = async (
       checkOutTime: now,
       checkOutLatitude: latitude,
       checkOutLongitude: longitude,
-      distanceBetween: distance,
       workingHours: workingHours,
       remarks: `Working hours: ${workingHours}h`,
     },
@@ -1000,6 +1033,19 @@ export const getEmployeeDocuments = async (
   const [documents, total] = await Promise.all([
     prisma.document.findMany({
       where,
+      select: {
+        id: true,
+        fileName: true,
+        filePath: true,
+        fileUrl: true,
+        documentType: true,
+        employeeId: true,
+        remarks: true,
+        fileSize: true,
+        uploadedBy: true,
+        isVerified: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
@@ -1043,7 +1089,6 @@ export const progressUpload = async (
       fileUrl: data.fileUrl,
       documentType: 'OTHER',
       employeeId: employee.id,
-      taskId: data.taskId || null,
       remarks: data.remarks || null,
       fileSize: data.fileSize || null,
       uploadedBy: `${employee.firstName} ${employee.lastName}`,

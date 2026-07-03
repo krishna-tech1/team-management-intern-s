@@ -18,6 +18,7 @@ import {
   markNotificationRead,
   getEmployeeDocuments,
   progressUpload,
+  getEmployeeProgress,
 } from './employee.service';
 import {
   successResponse,
@@ -148,6 +149,16 @@ export const getIncentivesController = async (req: AuthRequest, res: Response) =
     const userId = parseInt(req.user!.id);
     const data = await getEmployeeIncentives(userId);
     return successResponse(res, data, 'Incentives fetched successfully');
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
+  }
+};
+
+export const getProgressController = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = parseInt(req.user!.id);
+    const data = await getEmployeeProgress(userId);
+    return successResponse(res, data, 'Employee progress fetched successfully');
   } catch (err: any) {
     return errorResponse(res, err.message, 500);
   }

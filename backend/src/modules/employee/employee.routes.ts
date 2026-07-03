@@ -21,6 +21,7 @@ import {
   markNotificationReadController,
   getDocumentsController,
   progressUploadController,
+  getProgressController,
 } from './employee.controller';
 
 const router = Router();
@@ -52,6 +53,7 @@ router.get('/employee/performance', ...protect, getPerformanceController);
 
 // ─── INCENTIVES ───────────────────────────────────────────────────────────────
 router.get('/employee/incentives', ...protect, getIncentivesController);
+router.get('/employee/progress', ...protect, getProgressController);
 
 // ─── GPS ATTENDANCE ───────────────────────────────────────────────────────────
 router.post('/employee/checkin', ...protect, checkInController);

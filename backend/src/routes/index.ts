@@ -13,6 +13,12 @@ import employeeAccessRouter from '../modules/employeeAccess/employeeAccess.route
 import teamleadRouter from '../modules/teamlead/teamlead.routes';
 import employeeMobileRouter from '../modules/employee/employee.routes';
 import uploadRouter from './upload.routes';
+import searchRouter from './search.routes';
+import settingsRouter from './settings.routes';
+import notificationsRouter from './notifications.routes';
+import csvRouter from './csv.routes';
+import teamleadModuleRouter from './teamlead.routes';
+import onboardingRouter from './onboarding.routes';
 
 const router = Router();
 
@@ -34,6 +40,12 @@ router.use(employeeAccessRouter);
 router.use(teamleadRouter);
 router.use(employeeMobileRouter);
 router.use(uploadRouter);
+router.use(searchRouter);
+router.use(settingsRouter);
+router.use(notificationsRouter);
+router.use(csvRouter);
+router.use('/teamlead', teamleadModuleRouter);
+router.use('/onboarding', onboardingRouter);
 
 export default router;
-
+

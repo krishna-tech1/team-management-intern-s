@@ -55,6 +55,20 @@ export const getEmployeeById = async (id: number) => {
         },
       },
       attendances: {
+        select: {
+          id: true,
+          date: true,
+          status: true,
+          checkInTime: true,
+          checkOutTime: true,
+          checkInLatitude: true,
+          checkInLongitude: true,
+          checkOutLatitude: true,
+          checkOutLongitude: true,
+          workingHours: true,
+          remarks: true,
+          createdAt: true,
+        },
         orderBy: { createdAt: 'desc' },
         take: 7,
       },
@@ -66,7 +80,12 @@ export const getEmployeeById = async (id: number) => {
   });
 
   if (!employee) throw new Error('Employee not found');
-  return employee;
+
+  const username = employee.user?.email || employee.email;
+  return {
+    ...employee,
+    username,
+  };
 };
 
 // Create employee + linked user account

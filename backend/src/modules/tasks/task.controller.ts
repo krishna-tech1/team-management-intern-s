@@ -12,6 +12,7 @@ import {
   errorResponse,
   paginatedResponse,
 } from '../../utils/response.utils';
+import prisma from '../../config/prisma';
 
 export const getAllTasksController = async (
   req: AuthRequest,
@@ -24,6 +25,7 @@ export const getAllTasksController = async (
     const priority = req.query.priority as string;
     const clientId = req.query.clientId ? parseInt(req.query.clientId as string) : undefined;
     const assignedEmployeeId = req.query.assignedEmployeeId ? parseInt(req.query.assignedEmployeeId as string) : undefined;
+    const filter = req.query.filter as string;
 
     const result = await getAllTasks(
       page,
@@ -31,7 +33,8 @@ export const getAllTasksController = async (
       status,
       priority,
       clientId,
-      assignedEmployeeId
+      assignedEmployeeId,
+      filter
     );
     return paginatedResponse(
       res,
@@ -118,5 +121,29 @@ export const deleteTaskController = async (
       err.message,
       err.message === 'Task not found' ? 404 : 500
     );
+  }
+};
+
+export const getCompletedTasksController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const tasks = await prisma.task.findMany({
+      where: { status: 'COMPLETED', isDeleted: false },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        client: { select: { id: true, companyName: true } },
+        assignedEmployee: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+    const total = await prisma.task.count({ where: { status: 'COMPLETED', isDeleted: false } });
+    return paginatedResponse(res, tasks, total, page, limit);
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
   }
 };

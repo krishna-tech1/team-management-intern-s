@@ -5,23 +5,31 @@ import {
   createTaskController,
   updateTaskController,
   deleteTaskController,
+  getCompletedTasksController,
 } from './task.controller';
 import { authenticateToken } from '../../middleware/auth.middleware';
-import { requireSuperAdmin } from '../../middleware/role.middleware';
+import { requireSuperAdmin, requireTeamLeadOrAdmin } from '../../middleware/role.middleware';
 
 const router = Router();
 
 router.get(
   '/admin/tasks',
   authenticateToken,
-  requireSuperAdmin,
+  requireTeamLeadOrAdmin,
   getAllTasksController
+);
+
+router.get(
+  '/admin/tasks/completed',
+  authenticateToken,
+  requireTeamLeadOrAdmin,
+  getCompletedTasksController
 );
 
 router.get(
   '/admin/tasks/:id',
   authenticateToken,
-  requireSuperAdmin,
+  requireTeamLeadOrAdmin,
   getTaskByIdController
 );
 

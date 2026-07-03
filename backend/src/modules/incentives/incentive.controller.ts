@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../middleware/auth.middleware';
-import { createIncentive, getAllIncentives, getIncentiveFreeze, setIncentiveFreeze } from './incentive.service';
+import { createIncentive, getAllIncentives, getIncentiveFreeze, setIncentiveFreeze, updateIncentive } from './incentive.service';
 import {
   successResponse,
   errorResponse,
@@ -78,5 +78,16 @@ export const setIncentiveFreezeController = async (req: AuthRequest, res: Respon
     return successResponse(res, data, `Incentive records for ${month} updated successfully`);
   } catch (err: any) {
     return errorResponse(res, err.message, err.message.includes('Invalid') ? 400 : 500);
+  }
+};
+
+export const updateIncentiveController = async (req: AuthRequest, res: Response) => {
+  try {
+    const incentiveId = parseInt(req.params.id);
+    const performedBy = req.user?.email || 'System';
+    const data = await updateIncentive(incentiveId, req.body, performedBy);
+    return successResponse(res, data, 'Incentive updated successfully');
+  } catch (err: any) {
+    return errorResponse(res, err.message, err.message === 'Incentive not found' ? 404 : 400);
   }
 };

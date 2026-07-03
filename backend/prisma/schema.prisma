@@ -108,6 +108,7 @@ model Employee {
   department       String?
   designation      String?
   joiningDate      DateTime
+  dateOfBirth      DateTime?      // For default password generation
   status           EmployeeStatus
   profilePhotoUrl     String?
   profilePhotoPublicId String?
@@ -131,6 +132,20 @@ model Employee {
   leaveRequests       LeaveRequest[]
   workUpdates         TaskWorkUpdate[]
   taskStatusHistory   TaskStatusHistory[]
+  gpsTrackings        GPSTracking[]
+  leaderboardEntry    Leaderboard?
+  performanceEntry    Performance?
+  efficiencyEntry     Efficiency?
+  scopeActions        ScopeAction[]
+  teamStrengthEntry   TeamStrength?
+  dailyTrackings      DailyTracking[]
+  passwordResets      PasswordReset[]
+
+  // Performance metrics
+  leaderboardScore     Float          @default(0)
+  performanceRating    Float          @default(0)
+  efficiencyScore      Float          @default(0)
+  passwordGenerationDate DateTime?
 
   isActive         Boolean        @default(true)
   createdAt        DateTime       @default(now())
@@ -199,6 +214,7 @@ model Task {
   workUpdates        TaskWorkUpdate[]
   statusHistory      TaskStatusHistory[]
   documents          Document[]
+  upcomingDeadlines  UpcomingDeadline[]
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -405,6 +421,7 @@ model TeamLead {
   profilePhotoPublicId String?
 
   teamMembers TeamLeadEmployee[]
+  teamStrengths TeamStrength[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -469,6 +486,12 @@ model TaskWorkUpdate {
 
   attachments TaskWorkAttachment[]
 
+  // GPS tracking for work updates
+  latitude    Float?
+  longitude   Float?
+  address     String?
+  accuracy    Float?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -517,4 +540,223 @@ model IncentiveFreeze {
   isFrozen  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
+}
+
+// ─── TEAM LEADER MODULE MODELS ──────────────────────────────────────────────
+
+enum ScopeActionType {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  ASSIGN
+  REASSIGN
+}
+
+enum NotificationTriggerType {
+  TASK_DEADLINE
+  UPCOMING_DEADLINE
+  OVERDUE
+}
+
+model GPSTracking {
+  id          Int       @id @default(autoincrement())
+  
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  latitude    Float
+  longitude   Float
+  address     String?
+  accuracy    Float?
+  
+  eventType   String    // "CHECK_IN", "CHECK_OUT", "WORK_UPDATE", "DOCUMENT_UPLOAD", etc.
+  eventId     Int?      // ID of the related event (attendance ID, work update ID, etc.)
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([employeeId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model Leaderboard {
+  id          Int       @id @default(autoincrement())
+  
+  employeeId  Int       @unique
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  rank        Int       // 1 = top performer
+  score       Float     // composite score from performance metrics
+  pointsThisMonth Int
+  pointsLastMonth Int
+  
+  totalTasksCompleted Int
+  totalWorkHours    Float
+  averageTaskCompletion Float // percentage
+  
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  
+  @@index([rank])
+  @@index([score])
+}
+
+model Performance {
+  id          Int       @id @default(autoincrement())
+  
+  employeeId  Int       @unique
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  tasksCompleted Int    @default(0)
+  tasksOverdue   Int    @default(0)
+  tasksPending   Int    @default(0)
+  
+  averageCompletionTime Float // in days
+  performanceRating Float     // 0-100
+  
+  month       String    // YYYY-MM
+  
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  
+  @@index([employeeId])
+  @@index([month])
+}
+
+model Efficiency {
+  id          Int       @id @default(autoincrement())
+  
+  employeeId  Int       @unique
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  tasksCompletedOnTime Int
+  totalTasksAssigned   Int
+  efficiencyScore      Float     // percentage
+  
+  workHoursTracked     Float
+  workHoursExpected    Float
+  
+  month       String    // YYYY-MM
+  
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  
+  @@index([employeeId])
+  @@index([efficiencyScore])
+}
+
+model ScopeAction {
+  id          Int               @id @default(autoincrement())
+  
+  employeeId  Int
+  employee    Employee          @relation(fields: [employeeId], references: [id])
+  
+  actionType  ScopeActionType
+  resource    String            // "Task", "Employee", "Document", etc.
+  resourceId  Int
+  
+  scope       String            // "OWN", "TEAM", "DEPARTMENT", "ALL"
+  
+  grantedBy   String            // Team Lead email
+  grantedAt   DateTime          @default(now())
+  expiresAt   DateTime?
+  
+  isActive    Boolean           @default(true)
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  @@index([employeeId])
+  @@index([actionType])
+  @@index([resource])
+}
+
+model UpcomingDeadline {
+  id          Int       @id @default(autoincrement())
+  
+  taskId      Int
+  task        Task      @relation(fields: [taskId], references: [id])
+  
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  daysUntilDeadline Int
+  
+  notificationSent Boolean   @default(false)
+  notificationTime DateTime?
+  
+  notificationTrigger NotificationTriggerType // TASK_DEADLINE, UPCOMING_DEADLINE, OVERDUE
+  
+  isActive    Boolean   @default(true)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([employeeId])
+  @@index([taskId])
+  @@index([daysUntilDeadline])
+  @@index([notificationSent])
+}
+
+model PasswordReset {
+  id          Int       @id @default(autoincrement())
+  
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  oldPassword String    // hashed
+  newPassword String    // hashed
+  resetBy     String    // "SYSTEM", "ADMIN", "USER"
+  
+  reason      String?   // "ONBOARDING", "MANUAL_RESET", "USER_REQUEST", etc.
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([employeeId])
+  @@index([createdAt])
+}
+
+model TeamStrength {
+  id          Int       @id @default(autoincrement())
+  
+  teamLeadId  Int
+  teamLead    TeamLead  @relation(fields: [teamLeadId], references: [id])
+  
+  totalMembers Int
+  activeMembers Int
+  onLeaveMembers Int
+  averagePerformance Float
+  
+  month       String    // YYYY-MM
+  
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  
+  @@index([teamLeadId])
+  @@index([month])
+}
+
+model DailyTracking {
+  id          Int       @id @default(autoincrement())
+  
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  trackingDate DateTime
+  
+  tasksCompleted  Int     @default(0)
+  workHours       Float   @default(0)
+  documentsUploaded Int   @default(0)
+  tasksUpdated    Int     @default(0)
+  
+  lastRefreshed   DateTime @updatedAt
+  
+  createdAt   DateTime  @default(now())
+  
+  @@unique([employeeId, trackingDate])
+  @@index([employeeId])
+  @@index([trackingDate])
+}

@@ -77,7 +77,19 @@ export const getAllDocuments = async (
       where,
       skip,
       take: limit,
-      include: {
+      select: {
+        id: true,
+        fileName: true,
+        filePath: true,
+        fileUrl: true,
+        documentType: true,
+        clientId: true,
+        employeeId: true,
+        remarks: true,
+        fileSize: true,
+        uploadedBy: true,
+        isVerified: true,
+        createdAt: true,
         client: {
           select: { id: true, companyName: true },
         },

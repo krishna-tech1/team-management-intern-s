@@ -8,7 +8,8 @@ export const getAllTasks = async (
   status?: string,
   priority?: string,
   clientId?: number,
-  assignedEmployeeId?: number
+  assignedEmployeeId?: number,
+  filter?: string
 ) => {
   const skip = (page - 1) * limit;
   const where: any = { isDeleted: false };
@@ -17,6 +18,26 @@ export const getAllTasks = async (
   if (priority) where.priority = priority;
   if (clientId) where.clientId = clientId;
   if (assignedEmployeeId) where.assignedEmployeeId = assignedEmployeeId;
+  if (filter) {
+    const normalizedFilter = filter.toUpperCase();
+    switch (normalizedFilter) {
+      case 'PENDING':
+        where.status = 'PENDING';
+        break;
+      case 'EMPLOYEE_PENDING':
+        where.status = 'PENDING';
+        where.assignedEmployeeId = { not: null };
+        break;
+      case 'DOCUMENT_PENDING':
+        where.documents = { none: {} };
+        break;
+      case 'ASSIGNMENT_PENDING':
+        where.assignedEmployeeId = null;
+        break;
+      default:
+        break;
+    }
+  }
 
   const [tasks, total] = await Promise.all([
     prisma.task.findMany({

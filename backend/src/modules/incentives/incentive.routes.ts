@@ -4,16 +4,17 @@ import {
   getAllIncentivesController,
   getIncentiveFreezeController,
   setIncentiveFreezeController,
+  updateIncentiveController,
 } from './incentive.controller';
 import { authenticateToken } from '../../middleware/auth.middleware';
-import { requireSuperAdmin } from '../../middleware/role.middleware';
+import { requireSuperAdmin, requireTeamLeadOrAdmin } from '../../middleware/role.middleware';
 
 const router = Router();
 
 router.get(
   '/admin/incentives',
   authenticateToken,
-  requireSuperAdmin,
+  requireTeamLeadOrAdmin,
   getAllIncentivesController
 );
 
@@ -24,10 +25,17 @@ router.post(
   createIncentiveController
 );
 
+router.put(
+  '/admin/incentives/:id',
+  authenticateToken,
+  requireSuperAdmin,
+  updateIncentiveController
+);
+
 router.get(
   '/admin/incentives/freeze',
   authenticateToken,
-  requireSuperAdmin,
+  requireTeamLeadOrAdmin,
   getIncentiveFreezeController
 );
 
