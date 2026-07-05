@@ -3,9 +3,9 @@ import { errorResponse } from '../utils/response.utils';
 
 export const errorMiddleware = (
   err: any,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   console.error('❌ Error:', err);
 

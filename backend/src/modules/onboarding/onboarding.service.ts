@@ -146,7 +146,7 @@ export const getOnboardingStatus = async (employeeId: number) => {
       passwordSet: userChangedPassword,
       profileComplete: !!employee.phone && !!employee.department,
       firstLoginCompleted: userChangedPassword,
-      completedPercentage: this.calculateOnboardingPercentage(employee, userChangedPassword),
+      completedPercentage: calculateOnboardingPercentage(employee, userChangedPassword),
     },
     passwordHistory: passwordResetHistory.slice(0, 5), // Last 5 password changes
   };

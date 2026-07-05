@@ -33,13 +33,13 @@ export const resetEmployeePassword = async (
   const hashedPassword = await hashPassword(newPassword);
 
   // Update user password
-  const updatedUser = await prisma.user.update({
+  await prisma.user.update({
     where: { id: employee.user.id },
     data: { password: hashedPassword },
   });
 
   // Record password reset
-  const passwordReset = await prisma.passwordReset.create({
+  await prisma.passwordReset.create({
     data: {
       employeeId,
       oldPassword: employee.user.password, // Store old hashed password
@@ -171,7 +171,7 @@ export const generatePasswordResetToken = async (email: string) => {
 
   // In production, generate a secure token and store it temporarily
   // For now, just generate a token
-  const token = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+  Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
 
   return {
     success: true,

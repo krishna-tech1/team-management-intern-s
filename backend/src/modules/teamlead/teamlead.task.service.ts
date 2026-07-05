@@ -169,27 +169,3 @@ export const deleteTLTask = async (userId: number, taskId: number) => {
   return { message: 'Task deleted successfully' };
 };
 
-export const assignTaskToEmployee = async (
-  userId: number,
-  taskId: number,
-  employeeId: number
-) => {
-  const memberIds = await getTeamMemberIds(userId);
-  if (!memberIds.includes(employeeId)) throw new Error('Employee is not in your team');
-
-  const task = await prisma.task.findFirst({ where: { id: taskId, isDeleted: false } });
-  if (!task) throw new Error('Task not found');
-
-  const updated = await prisma.task.update({
-    where: { id: taskId },
-    data: { assignedEmployeeId: employeeId },
-  });
-
-  await prisma.taskAssignment.deleteMany({ where: { taskId } });
-  await prisma.taskAssignment.create({ data: { taskId, employeeId } });
-
-  // Log to AuditLog
-  await createAuditLog('Task updated', `teamlead:${userId}`, 'Task', taskId);
-
-  return updated;
-};

@@ -1,6 +1,6 @@
 import prisma from '../../config/prisma';
-import { calculateDistance, isWithinRadius, formatLocationData } from '../../utils/gpsUtils';
-import { validateCheckIn, validateCheckOut, isAlreadyCheckedInToday } from '../../utils/validationUtils';
+import { calculateDistance, formatLocationData } from '../../utils/gpsUtils';
+import { validateCheckIn, validateCheckOut } from '../../utils/validationUtils';
 import { createAuditLog } from '../auditlogs/auditlog.service';
 
 const CHECKOUT_RADIUS_METERS = 200; // 200 meter radius for checkout validation
@@ -339,7 +339,7 @@ export const getAttendanceSummary = async (
     records: records.map((r) => ({
       ...r,
       locationData: r.checkInLatitude
-        ? formatLocationData(r.checkInLatitude, r.checkInLongitude!, r.checkInAddress)
+        ? formatLocationData(r.checkInLatitude, r.checkInLongitude!, r.checkInAddress ?? undefined)
         : null,
     })),
   };
@@ -368,7 +368,7 @@ export const getLatestGPSLocation = async (userId: number) => {
 
   return {
     ...latest,
-    locationData: formatLocationData(latest.latitude, latest.longitude, latest.address, latest.accuracy),
+    locationData: formatLocationData(latest.latitude, latest.longitude, latest.address ?? undefined, latest.accuracy ?? undefined),
   };
 };
 
@@ -384,7 +384,7 @@ export const updateAttendanceStatus = async (
     where: { id: attendanceId },
     data: {
       status,
-      remarks: remarks || attendance.remarks,
+      ...(remarks !== undefined && { remarks }),
     },
   });
 

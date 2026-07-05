@@ -6,8 +6,9 @@ import { getTeamLeadDashboard } from './teamlead.dashboard.service';
 import { getTLEmployees, getTLEmployeeById, updateTLEmployee } from './teamlead.employee.service';
 import { getTLClients, getTLClientById } from './teamlead.client.service';
 import {
-  getTLTasks, createTLTask, updateTLTask, deleteTLTask, assignTaskToEmployee,
+  getTLTasks, createTLTask, updateTLTask, deleteTLTask,
 } from './teamlead.task.service';
+import { assignTask } from '../taskassignment/taskassignment.service';
 import { getTLTracking } from './teamlead.tracking.service';
 import { getTLAnalytics } from './teamlead.analytics.service';
 import { getTLIncentives, calculateTLIncentives, updateTLIncentiveStatus } from './teamlead.incentive.service';
@@ -146,7 +147,7 @@ export const assignTaskController = async (req: AuthRequest, res: Response) => {
   try {
     const { employeeId } = req.body;
     if (!employeeId) return errorResponse(res, 'employeeId is required', 400);
-    const task = await assignTaskToEmployee(getUserId(req), parseInt(req.params.id), parseInt(employeeId));
+    const task = await assignTask(parseInt(req.params.id), parseInt(employeeId), getEmail(req));
     return successResponse(res, task, 'Task assigned successfully');
   } catch (err: any) {
     return errorResponse(res, err.message, err.message.includes('not found') || err.message.includes('not in') ? 400 : 500);

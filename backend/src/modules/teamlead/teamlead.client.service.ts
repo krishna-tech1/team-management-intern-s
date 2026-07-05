@@ -1,8 +1,8 @@
 import prisma from '../../config/prisma';
-import { getTeamMemberIds } from './teamlead.helper';
+
 
 export const getTLClients = async (
-  userId: number,
+  _userId: number,
   page = 1,
   limit = 10,
   search?: string,
@@ -40,7 +40,7 @@ export const getTLClients = async (
   return { clients, total, page, limit };
 };
 
-export const getTLClientById = async (userId: number, clientId: number) => {
+export const getTLClientById = async (_userId: number, clientId: number) => {
   const client = await prisma.client.findFirst({
     where: { id: clientId, isDeleted: false },
     include: {

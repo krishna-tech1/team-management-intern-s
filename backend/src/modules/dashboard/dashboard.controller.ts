@@ -3,7 +3,7 @@ import { getDashboardStats } from './dashboard.service';
 import { successResponse, errorResponse } from '../../utils/response.utils';
 
 export const dashboardStatsController = async (
-  req: Request,
+  _req: Request,
   res: Response
 ) => {
   try {

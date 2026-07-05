@@ -29,7 +29,7 @@ router.post('/admin/notifications', authenticateToken, requireTeamLeadOrAdmin, a
         message: req.body.message || '',
         type: req.body.type || 'ANNOUNCEMENT',
         employeeId: req.body.employeeId || null,
-        createdBy: req.user?.email || 'System',
+        createdBy: (req as any).user?.email || 'System',
         isTeamLead: true,
       },
     });

@@ -120,7 +120,7 @@ export const calculateLeaderboard = async (month?: string) => {
 /**
  * Get leaderboard rankings
  */
-export const getLeaderboard = async (month?: string, limit: number = 10) => {
+export const getLeaderboard = async (_month?: string, limit: number = 10) => {
   const leaderboards = await prisma.leaderboard.findMany({
     include: {
       employee: {
@@ -185,6 +185,7 @@ export const calculatePerformance = async (employeeId: number, month?: string) =
       tasksOverdue: overdue,
       tasksPending: pending,
       performanceRating,
+      averageCompletionTime: 0,
       month: targetMonth,
     },
     create: {
@@ -193,6 +194,7 @@ export const calculatePerformance = async (employeeId: number, month?: string) =
       tasksOverdue: overdue,
       tasksPending: pending,
       performanceRating,
+      averageCompletionTime: 0,
       month: targetMonth,
     },
   });
@@ -303,26 +305,35 @@ export const calculateTeamStrength = async (teamLeadId: number, month?: string) 
 
   const averagePerformance = totalMembers > 0 ? totalPerformance / totalMembers : 0;
 
-  const teamStrength = await prisma.teamStrength.upsert({
+  let teamStrength = await prisma.teamStrength.findFirst({
     where: {
       teamLeadId,
-    },
-    update: {
-      totalMembers,
-      activeMembers,
-      onLeaveMembers,
-      averagePerformance,
-      month: targetMonth,
-    },
-    create: {
-      teamLeadId,
-      totalMembers,
-      activeMembers,
-      onLeaveMembers,
-      averagePerformance,
       month: targetMonth,
     },
   });
+
+  if (teamStrength) {
+    teamStrength = await prisma.teamStrength.update({
+      where: { id: teamStrength.id },
+      data: {
+        totalMembers,
+        activeMembers,
+        onLeaveMembers,
+        averagePerformance,
+      },
+    });
+  } else {
+    teamStrength = await prisma.teamStrength.create({
+      data: {
+        teamLeadId,
+        totalMembers,
+        activeMembers,
+        onLeaveMembers,
+        averagePerformance,
+        month: targetMonth,
+      },
+    });
+  }
 
   return teamStrength;
 };

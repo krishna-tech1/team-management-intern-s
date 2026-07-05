@@ -85,7 +85,7 @@ export const getAllDocuments = async (
         documentType: true,
         clientId: true,
         employeeId: true,
-        remarks: true,
+
         fileSize: true,
         uploadedBy: true,
         isVerified: true,

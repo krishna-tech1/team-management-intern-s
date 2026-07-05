@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import multer from 'multer';
+
 import { authenticateToken } from '../../middleware/auth.middleware';
 import { requireEmployee } from '../../middleware/role.middleware';
 import { workUpdateUpload } from './upload.middleware';

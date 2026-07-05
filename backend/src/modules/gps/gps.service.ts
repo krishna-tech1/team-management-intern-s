@@ -71,7 +71,7 @@ export const getEmployeeGPSHistory = async (
   return {
     locations: locations.map((loc) => ({
       ...loc,
-      locationData: formatLocationData(loc.latitude, loc.longitude, loc.address, loc.accuracy),
+      locationData: formatLocationData(loc.latitude, loc.longitude, loc.address ?? undefined, loc.accuracy ?? undefined),
       mapsUrl: generateMapsUrl(loc.latitude, loc.longitude),
     })),
     total,
@@ -103,7 +103,7 @@ export const getGPSLocationByEvent = async (
 
   return {
     ...location,
-    locationData: formatLocationData(location.latitude, location.longitude, location.address, location.accuracy),
+    locationData: formatLocationData(location.latitude, location.longitude, location.address ?? undefined, location.accuracy ?? undefined),
     mapsUrl: generateMapsUrl(location.latitude, location.longitude),
   };
 };
@@ -123,7 +123,7 @@ export const getCurrentLocation = async (employeeId: number) => {
 
   return {
     ...location,
-    locationData: formatLocationData(location.latitude, location.longitude, location.address, location.accuracy),
+    locationData: formatLocationData(location.latitude, location.longitude, location.address ?? undefined, location.accuracy ?? undefined),
     mapsUrl: generateMapsUrl(location.latitude, location.longitude),
   };
 };

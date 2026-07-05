@@ -1,5 +1,5 @@
 import prisma from '../../config/prisma';
-import { comparePassword, hashPassword } from '../../utils/password.utils';
+import { hashPassword } from '../../utils/password.utils';
 import { TaskStatus, AttendanceStatus } from '@prisma/client';
 import { createAuditLog } from '../auditlogs/auditlog.service';
 import { config } from '../../config/index';
@@ -1040,7 +1040,7 @@ export const getEmployeeDocuments = async (
         fileUrl: true,
         documentType: true,
         employeeId: true,
-        remarks: true,
+
         fileSize: true,
         uploadedBy: true,
         isVerified: true,
@@ -1089,7 +1089,7 @@ export const progressUpload = async (
       fileUrl: data.fileUrl,
       documentType: 'OTHER',
       employeeId: employee.id,
-      remarks: data.remarks || null,
+
       fileSize: data.fileSize || null,
       uploadedBy: `${employee.firstName} ${employee.lastName}`,
       createdAt: data.uploadedAt,

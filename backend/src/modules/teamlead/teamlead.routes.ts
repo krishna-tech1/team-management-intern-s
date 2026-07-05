@@ -1,6 +1,15 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
+import prisma from '../../config/prisma';
 import { authenticateToken } from '../../middleware/auth.middleware';
-import { requireSuperAdmin, requireTeamLead } from '../../middleware/role.middleware';
+import { requireSuperAdmin, requireTeamLead, requireTeamLeadOrAdmin } from '../../middleware/role.middleware';
+
+// Service imports for consolidated routes
+import * as attendanceServiceModule from '../attendance/attendance.service';
+import * as gpsServiceModule from '../gps/gps.service';
+import * as taskAssignmentServiceModule from '../taskassignment/taskassignment.service';
+import * as metricsServiceModule from '../metrics/metrics.service';
+import * as scopeActionsServiceModule from '../scopeactions/scopeactions.service';
+import * as deadlineServiceModule from '../upcomingdeadline/upcomingdeadline.service';
 import {
   dashboardController,
   getEmployeesController,
@@ -33,7 +42,7 @@ const tl = [authenticateToken, requireTeamLead]; // shorthand middleware chain
 const admin = [authenticateToken, requireSuperAdmin];
 
 // Admin team lead management
-router.get('/admin/teamlead', ...admin, async (req, res) => {
+router.get('/admin/teamlead', ...admin, async (_req, res) => {
   try {
     const teamLeads = await prisma.teamLead.findMany({
       include: {
@@ -154,5 +163,278 @@ router.put('/teamlead/leaves/:id/reject', ...tl, rejectLeaveController);
 
 // Attendance
 router.get('/teamlead/attendance', ...tl, attendanceController);
+
+// ─── CONSOLIDATED ROUTES (from routes/teamlead.routes.ts) ───────────────────
+// These were previously in src/routes/teamlead.routes.ts mounted at /teamlead prefix.
+// Now consolidated here with full paths to preserve API compatibility.
+
+// ─── ATTENDANCE (Employee self-service) ─────────────────────────────────────
+
+router.post('/teamlead/attendance/check-in', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { latitude, longitude, accuracy, address, selfieUrl } = req.body;
+    const result = await attendanceServiceModule.checkIn(userId, {
+      latitude, longitude, accuracy, address, selfieUrl,
+    });
+    res.status(201).json({ success: true, message: 'Check-in successful', data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/teamlead/attendance/check-out', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { latitude, longitude, accuracy, address, selfieUrl } = req.body;
+    const result = await attendanceServiceModule.checkOut(userId, {
+      latitude, longitude, accuracy, address, selfieUrl,
+    });
+    res.status(200).json({ success: true, message: 'Check-out successful', data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/attendance/history', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const result = await attendanceServiceModule.getAttendanceHistory(userId, page, limit);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/attendance/summary', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const period = (req.query.period as 'WEEK' | 'MONTH') || 'WEEK';
+    const result = await attendanceServiceModule.getAttendanceSummary(userId, period);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ─── GPS ────────────────────────────────────────────────────────────────────
+
+router.get('/teamlead/gps/current', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const result = await gpsServiceModule.getCurrentLocation(employee.id);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/gps/history', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const eventType = req.query.eventType as string;
+    const result = await gpsServiceModule.getEmployeeGPSHistory(employee.id, page, limit, eventType);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/gps/heatmap', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const dateFrom = new Date(req.query.dateFrom as string);
+    const dateTo = new Date(req.query.dateTo as string);
+    const result = await gpsServiceModule.getGPSHeatmapData(employee.id, dateFrom, dateTo);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ─── TASK ASSIGNMENT ────────────────────────────────────────────────────────
+
+router.get('/teamlead/tasks/assigned', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const status = req.query.status as string;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const result = await taskAssignmentServiceModule.getEmployeeAssignedTasks(employee.id, status, page, limit);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/teamlead/tasks/assign', authenticateToken, requireTeamLeadOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const { taskId, employeeId } = req.body;
+    const user = (req as any).user;
+    const result = await taskAssignmentServiceModule.assignTask(taskId, employeeId, user.email);
+    res.status(201).json({ success: true, message: 'Task assigned successfully', data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/tasks/workload', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employeeId = parseInt(req.query.employeeId as string);
+    if (!employeeId) {
+      return res.status(400).json({ success: false, message: 'employeeId query parameter is required' });
+    }
+    const result = await taskAssignmentServiceModule.getEmployeeWorkload(employeeId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/tasks/overdue', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const result = await taskAssignmentServiceModule.getOverdueTasks(employee.id);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ─── LEADERBOARD & METRICS ─────────────────────────────────────────────────
+
+router.get('/teamlead/metrics/leaderboard', authenticateToken, requireTeamLeadOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const month = req.query.month as string;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const result = await metricsServiceModule.getLeaderboard(month, limit);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/teamlead/metrics/leaderboard/calculate', authenticateToken, requireTeamLeadOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const month = req.body.month;
+    const result = await metricsServiceModule.calculateLeaderboard(month);
+    res.json({ success: true, message: 'Leaderboard recalculated', data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/metrics/performance/:employeeId', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employeeId = parseInt(req.params.employeeId);
+    const month = req.query.month as string;
+    const result = await metricsServiceModule.calculatePerformance(employeeId, month);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/metrics/efficiency/:employeeId', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employeeId = parseInt(req.params.employeeId);
+    const month = req.query.month as string;
+    const result = await metricsServiceModule.calculateEfficiency(employeeId, month);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/metrics/daily-tracking', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const days = parseInt(req.query.days as string) || 7;
+    const result = await metricsServiceModule.getDailyTracking(employee.id, days);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/metrics/team-strength/:teamLeadId', authenticateToken, requireTeamLeadOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const teamLeadId = parseInt(req.params.teamLeadId);
+    const month = req.query.month as string;
+    const result = await metricsServiceModule.calculateTeamStrength(teamLeadId, month);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ─── SCOPE ACTIONS ──────────────────────────────────────────────────────────
+
+router.get('/teamlead/permissions', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const result = await scopeActionsServiceModule.getEmployeePermissions(employee.id);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/teamlead/permissions/grant', authenticateToken, requireTeamLeadOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const { employeeId, actionType, resource, scope } = req.body;
+    const user = (req as any).user;
+    const result = await scopeActionsServiceModule.grantScopeAction(employeeId, actionType, resource, scope, user.email);
+    res.status(201).json({ success: true, message: 'Permission granted', data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ─── UPCOMING DEADLINES ─────────────────────────────────────────────────────
+
+router.get('/teamlead/deadlines/upcoming', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const daysRange = parseInt(req.query.daysRange as string) || 7;
+    const result = await deadlineServiceModule.getUpcomingDeadlines(employee.id, daysRange);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/deadlines/overdue', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employee = (req as any).employee;
+    const result = await deadlineServiceModule.getOverdueTasks(employee.id);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.get('/teamlead/deadlines/stats/:teamLeadId', authenticateToken, requireTeamLeadOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const teamLeadId = parseInt(req.params.teamLeadId);
+    const result = await deadlineServiceModule.getTeamDeadlineStats(teamLeadId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/teamlead/deadlines/send-notifications', async (_req: Request, res: Response) => {
+  try {
+    const result = await deadlineServiceModule.processPendingNotifications();
+    res.json({ success: true, message: 'Notifications processed', data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
 
 export default router;

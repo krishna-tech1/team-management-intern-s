@@ -4,7 +4,7 @@ import { getAnalyticsStats } from './analytics.service';
 import { successResponse, errorResponse } from '../../utils/response.utils';
 
 export const getAnalyticsController = async (
-  req: AuthRequest,
+  _req: AuthRequest,
   res: Response
 ) => {
   try {

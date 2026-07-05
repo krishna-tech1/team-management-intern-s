@@ -11,7 +11,8 @@ export const grantScopeAction = async (
   resource: string, // Task, Document, Employee, Attendance, etc.
   scope: string, // OWN, TEAM, DEPARTMENT, ALL
   grantedBy: string,
-  expiresAt?: Date
+  expiresAt?: Date,
+  resourceId: number = 0
 ) => {
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
@@ -26,6 +27,7 @@ export const grantScopeAction = async (
       employeeId,
       actionType: actionType as any,
       resource,
+      resourceId,
       scope,
       grantedBy,
       expiresAt,

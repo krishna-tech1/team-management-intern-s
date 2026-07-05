@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken, requireSuperAdmin } from '../middleware/auth.middleware';
-import * as onboardingService from '../modules/onboarding/onboarding.service';
-import * as passwordService from '../modules/password/password.service';
+import { authenticateToken } from '../../middleware/auth.middleware';
+import { requireSuperAdmin } from '../../middleware/role.middleware';
+import * as onboardingService from './onboarding.service';
+import * as passwordService from '../password/password.service';
 
 const router = Router();
 
