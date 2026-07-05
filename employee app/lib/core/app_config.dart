@@ -4,7 +4,7 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'http://localhost:4000/api',
     
-   /* 'API_BASE_URL',
+    /*'API_BASE_URL',
     defaultValue: 'https://team-management-intern-s-pzly.vercel.app/api',*/
   );
 }
