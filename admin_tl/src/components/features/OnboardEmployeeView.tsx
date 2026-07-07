@@ -61,7 +61,7 @@ export function OnboardEmployeeView() {
   function validateAll() {
     const missing: string[] = []
     if (!draft.name) missing.push('Full Name')
-    const officialEmail = draft.officialEmailLocal ? `${draft.officialEmailLocal}@complianceos.com` : draft.email
+    const officialEmail = draft.officialEmailLocal ? `${draft.officialEmailLocal}@traxa.com` : draft.email
     if (!officialEmail) missing.push('Email')
     if (!draft.id) missing.push('Employee ID')
     if (!draft.department) missing.push('Department')
@@ -118,7 +118,7 @@ export function OnboardEmployeeView() {
   }
 
   async function submit() {
-    const officialEmail = draft.officialEmailLocal ? `${draft.officialEmailLocal}@complianceos.com` : draft.email
+    const officialEmail = draft.officialEmailLocal ? `${draft.officialEmailLocal}@traxa.com` : draft.email
     if (!draft.name || !officialEmail) { alert('Name and Email required'); return }
     
     const [firstName, ...lastNameParts] = draft.name.split(' ');
@@ -320,7 +320,7 @@ export function OnboardEmployeeView() {
                 <div className="mb-2">
                   <div className="flex items-center gap-6">
                     <input value={draft.officialEmailLocal || ''} onChange={(e)=>update('officialEmailLocal', e.target.value)} className="h-10 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-ink min-w-0" placeholder="john.doe" />
-                    <div className="text-sm text-ink-muted">@complianceos.com</div>
+                    <div className="text-sm text-ink-muted">@traxa.com</div>
                   </div>
                 </div>
 

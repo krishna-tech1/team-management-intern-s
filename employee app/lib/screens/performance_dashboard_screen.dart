@@ -198,8 +198,8 @@ class _PerformanceDashboardScreenState extends State<PerformanceDashboardScreen>
           ),
         ),
         title: const Text(
-          'FieldCore',
-          style: TextStyle(color: Color(0xFF966314), fontSize: 20, fontWeight: FontWeight.w700),
+          'Traxa',
+          style: TextStyle(color: AppColors.accent, fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(

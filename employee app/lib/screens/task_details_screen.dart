@@ -73,7 +73,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'FieldCore',
+          'Traxa',
           style: TextStyle(color: AppColors.accent, fontSize: 20, fontWeight: FontWeight.w700),
         ),
       ),

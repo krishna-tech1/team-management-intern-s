@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary amber/golden palette from FieldCore designs
-  static const Color primary = Color(0xFF7A5C00);       // Dark amber/brown
-  static const Color primaryDark = Color(0xFF5C4300);   // Darker amber
-  static const Color accent = Color(0xFFF5A623);        // Bright orange-amber
-  static const Color accentLight = Color(0xFFFFF0D6);   // Light amber tint
-  static const Color accentMedium = Color(0xFFFFD98E);  // Medium amber
+  static const Color primary = Color(0xFF1E2022);       // Dark charcoal/gray
+  static const Color primaryDark = Color(0xFF111827);   // Darker gray
+  static const Color accent = Color(0xFFF96A02);        // Traxa Orange
+  static const Color accentLight = Color(0xFFFFECE0);   // Light orange tint
+  static const Color accentMedium = Color(0xFFFFCDAB);  // Medium orange tint
 
   // Background colors
   static const Color background = Color(0xFFF5F0EB);    // Warm off-white

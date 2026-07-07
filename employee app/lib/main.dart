@@ -13,17 +13,17 @@ import 'providers/incentive_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const FieldCoreApp());
+  runApp(const TraxaApp());
 }
 
-class FieldCoreApp extends StatefulWidget {
-  const FieldCoreApp({super.key});
+class TraxaApp extends StatefulWidget {
+  const TraxaApp({super.key});
 
   @override
-  State<FieldCoreApp> createState() => _FieldCoreAppState();
+  State<TraxaApp> createState() => _TraxaAppState();
 }
 
-class _FieldCoreAppState extends State<FieldCoreApp> {
+class _TraxaAppState extends State<TraxaApp> {
   @override
   void initState() {
     super.initState();
@@ -78,7 +78,7 @@ class _FieldCoreAppState extends State<FieldCoreApp> {
         ),
       ],
       child: MaterialApp(
-        title: 'FieldCore - GST MCA Operations',
+        title: 'Traxa Operations',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: Consumer<AuthProvider>(

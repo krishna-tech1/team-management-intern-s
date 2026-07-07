@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 child: const Center(
-                  child: Icon(Icons.fact_check_outlined, size: 48, color: Color(0xFF4285F4)),
+                  child: Icon(Icons.fact_check_outlined, size: 48, color: AppColors.accent),
                 ),
               ),
               const SizedBox(height: 32),
@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'Enter your credentials to access the GST MCA Operations portal.',
+                  'Enter your credentials to access the Traxa Operations portal.',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMedium,
                 ),
@@ -316,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                '© 2024 GST MCA Operations System. All Rights Reserved.',
+                '© 2024 Traxa Operations System. All Rights Reserved.',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySmall,
               ),

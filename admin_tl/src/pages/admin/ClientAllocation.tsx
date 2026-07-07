@@ -92,7 +92,7 @@ export default function AdminClientAllocation() {
 
   return (
     <div>
-      <PageHeader title="Client Allocation" subtitle="Client Allocation - ComplianceOS" />
+      <PageHeader title="Client Allocation" subtitle="Client Allocation - Traxa" />
 
       {error && (
         <div className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">

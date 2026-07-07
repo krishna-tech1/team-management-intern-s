@@ -12,12 +12,11 @@ export const createSuperAdmin = async () => {
   if (existing) {
     return;
   }
-
   const hashedPassword = await bcrypt.hash('Admin@123', 12);
 
   await prisma.user.create({
     data: {
-      email: 'admin@gstmca.com',
+      email: 'admin@traxa.com',
       password: hashedPassword,
       role: UserRole.SUPER_ADMIN,
     },

@@ -43,3 +43,4 @@ process.on('SIGTERM', async () => {
   server.close();
   logger.info('Server closed');
 });
+// Force dev server reload to pick up new DATABASE_URL environment variable

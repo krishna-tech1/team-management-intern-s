@@ -221,8 +221,8 @@ class _GpsAttendanceScreenState extends State<GpsAttendanceScreen> {
           ),
         ),
         title: const Text(
-          'FieldCore',
-          style: TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700),
+          'Traxa',
+          style: TextStyle(color: AppColors.accent, fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(icon: const Icon(Icons.refresh, color: AppColors.textPrimary), onPressed: _handleLocationPermission),

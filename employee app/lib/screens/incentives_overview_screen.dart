@@ -27,8 +27,8 @@ class IncentivesOverviewScreen extends StatelessWidget {
           ),
         ),
         title: const Text(
-          'FieldCore',
-          style: TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700),
+          'Traxa',
+          style: TextStyle(color: AppColors.accent, fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(icon: const Icon(Icons.search, color: AppColors.textPrimary), onPressed: () {}),

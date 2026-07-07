@@ -9,7 +9,7 @@ import { toast } from '@/components/ui/Toast'
 export default function Settings() {
   const { user } = useAuth()
   const [name, setName] = useState(user?.name ?? 'Vikram Sharma')
-  const [email] = useState(user?.email ?? 'vikram.sharma@complianceos.com')
+  const [email] = useState(user?.email ?? 'vikram.sharma@traxa.com')
   const [phone, setPhone] = useState('+91 98200 98765')
   const [designation] = useState('GST Compliance Lead')
   const [location, setLocation] = useState('Mumbai HQ')

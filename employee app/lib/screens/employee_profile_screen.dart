@@ -18,8 +18,8 @@ class EmployeeProfileScreen extends StatelessWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         title: const Text(
-          'FieldCore',
-          style: TextStyle(color: Color(0xFF966314), fontSize: 20, fontWeight: FontWeight.w700),
+          'Traxa',
+          style: TextStyle(color: AppColors.accent, fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(icon: const Icon(Icons.search, color: AppColors.textPrimary), onPressed: () {}),
@@ -218,7 +218,7 @@ class EmployeeProfileScreen extends StatelessWidget {
 
                 // Footer
                 const Text(
-                  'FieldCore GST MCA v2.2.0-stable',
+                  'Traxa v2.2.0-stable',
                   style: TextStyle(color: Color(0xFFD6C8B5), fontSize: 11),
                 ),
                 const SizedBox(height: 4),

@@ -73,7 +73,7 @@ class DocumentUploadService {
           final metaResponse = await _apiClient.post(
             ApiEndpoints.progressUpload,
             body: {
-              if (taskId != null) 'taskId': taskId,
+              'taskId': ?taskId,
               'fileUrl': secureUrl.toString(),
               'fileName': fileName,
               'fileSize': fileSize,

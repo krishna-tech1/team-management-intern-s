@@ -142,7 +142,7 @@ export default function EditEmployeePage() {
       await employeeService.updateEmployee(String(employee.id), {
         firstName,
         lastName,
-        email: values.emailLocal ? `${values.emailLocal}@complianceos.com` : undefined,
+        email: values.emailLocal ? `${values.emailLocal}@traxa.com` : undefined,
         phone: values.phone,
         department: values.department,
         designation: values.designation,
@@ -263,7 +263,7 @@ export default function EditEmployeePage() {
                         className="mt-1 h-10 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-ink min-w-0"
                         placeholder="e.g. john.doe"
                       />
-                      <span className="text-sm text-ink-muted">@complianceos.com</span>
+                      <span className="text-sm text-ink-muted">@traxa.com</span>
                     </div>
                     {errors.emailLocal && <div className="text-rose-600 text-xs mt-1">{errors.emailLocal.message}</div>}
                   </div>

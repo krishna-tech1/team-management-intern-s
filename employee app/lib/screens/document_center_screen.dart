@@ -172,8 +172,8 @@ class _DocumentCenterScreenState extends State<DocumentCenterScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'FieldCore',
-          style: TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700),
+          'Traxa',
+          style: TextStyle(color: AppColors.accent, fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
@@ -257,7 +257,7 @@ class _DocumentCenterScreenState extends State<DocumentCenterScreen> {
                   const Text('Associated Task (Optional)', style: AppTextStyles.titleLarge),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<int>(
-                    value: _selectedTaskId,
+                    initialValue: _selectedTaskId,
                     items: [
                       const DropdownMenuItem<int>(
                         value: null,
@@ -420,7 +420,7 @@ class _DocumentCenterScreenState extends State<DocumentCenterScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '${fileSize != null ? _formatFileSize(fileSize) + ' • ' : ''}${date != null ? DateFormat('MMM dd, yyyy').format(date.toLocal()) : ''}',
+                              '${fileSize != null ? '${_formatFileSize(fileSize)} • ' : ''}${date != null ? DateFormat('MMM dd, yyyy').format(date.toLocal()) : ''}',
                               style: AppTextStyles.bodySmall,
                             ),
                             if (doc['remarks'] != null && doc['remarks'].toString().isNotEmpty) ...[

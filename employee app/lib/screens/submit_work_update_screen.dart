@@ -17,8 +17,8 @@ class _SubmitWorkUpdateScreenState extends State<SubmitWorkUpdateScreen> {
   final _titleController = TextEditingController();
   final _notesController = TextEditingController();
 
-  List<File> _photos = [];
-  List<File> _documents = [];
+  final List<File> _photos = [];
+  final List<File> _documents = [];
   bool _isSubmitting = false;
 
   @override

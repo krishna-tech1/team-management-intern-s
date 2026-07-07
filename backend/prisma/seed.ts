@@ -13,7 +13,7 @@ async function main() {
   // Super Admin
   const adminUser = await prisma.user.create({
     data: {
-      email: 'admin@complianceos.com',
+      email: 'admin@traxa.com',
       password: hashedAdmin,
       role: 'SUPER_ADMIN',
       employee: {
@@ -21,7 +21,7 @@ async function main() {
           employeeCode: 'FC-SA-0001',
           firstName: 'Super',
           lastName: 'Admin',
-          email: 'admin@complianceos.com',
+          email: 'admin@traxa.com',
           department: 'GST',
           designation: 'System Administrator',
           joiningDate: new Date('2022-01-01'),
@@ -35,7 +35,7 @@ async function main() {
   // Team Lead 1
   const tl1User = await prisma.user.create({
     data: {
-      email: 'vikram.tl@complianceos.com',
+      email: 'vikram.tl@traxa.com',
       password: hashedTL,
       role: 'TEAM_LEAD',
       employee: {
@@ -43,7 +43,7 @@ async function main() {
           employeeCode: 'FC-TL-0001',
           firstName: 'Vikram',
           lastName: 'Malhotra',
-          email: 'vikram.tl@complianceos.com',
+          email: 'vikram.tl@traxa.com',
           department: 'GST',
           designation: 'Team Lead - GST',
           joiningDate: new Date('2022-06-01'),
@@ -57,7 +57,7 @@ async function main() {
   // Team Lead 2
   const tl2User = await prisma.user.create({
     data: {
-      email: 'priya.tl@complianceos.com',
+      email: 'priya.tl@traxa.com',
       password: hashedTL,
       role: 'TEAM_LEAD',
       employee: {
@@ -65,7 +65,7 @@ async function main() {
           employeeCode: 'FC-TL-0002',
           firstName: 'Priya',
           lastName: 'Kulkarni',
-          email: 'priya.tl@complianceos.com',
+          email: 'priya.tl@traxa.com',
           department: 'MCA',
           designation: 'Team Lead - MCA',
           joiningDate: new Date('2022-08-01'),
@@ -79,7 +79,7 @@ async function main() {
   // Employee 1
   await prisma.user.create({
     data: {
-      email: 'arjun.v@fieldcore.gov.in',
+      email: 'arjun.v@traxa.com',
       password: hashedEmp,
       role: 'EMPLOYEE',
       employee: {
@@ -87,7 +87,7 @@ async function main() {
           employeeCode: 'FC-GST-9842',
           firstName: 'Arjun',
           lastName: 'Vardhan',
-          email: 'arjun.v@fieldcore.gov.in',
+          email: 'arjun.v@traxa.com',
           phone: '+91 98860 12345',
           department: 'GST',
           designation: 'Field Agent',
@@ -101,7 +101,7 @@ async function main() {
   // Employee 2
   await prisma.user.create({
     data: {
-      email: 'aditi.s@fieldcore.gov.in',
+      email: 'aditi.s@traxa.com',
       password: hashedEmp,
       role: 'EMPLOYEE',
       employee: {
@@ -109,7 +109,7 @@ async function main() {
           employeeCode: 'FC-GST-9843',
           firstName: 'Aditi',
           lastName: 'Sharma',
-          email: 'aditi.s@fieldcore.gov.in',
+          email: 'aditi.s@traxa.com',
           phone: '+91 98765 43210',
           department: 'GST',
           designation: 'Senior Field Agent',
@@ -123,7 +123,7 @@ async function main() {
   // Employee 3
   await prisma.user.create({
     data: {
-      email: 'rohan.v@fieldcore.gov.in',
+      email: 'rohan.v@traxa.com',
       password: hashedEmp,
       role: 'EMPLOYEE',
       employee: {
@@ -131,7 +131,7 @@ async function main() {
           employeeCode: 'FC-MCA-9844',
           firstName: 'Rohan',
           lastName: 'Varma',
-          email: 'rohan.v@fieldcore.gov.in',
+          email: 'rohan.v@traxa.com',
           phone: '+91 98712 34567',
           department: 'MCA',
           designation: 'Compliance Officer',
