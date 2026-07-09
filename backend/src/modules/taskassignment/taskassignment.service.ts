@@ -27,27 +27,33 @@ export const assignTask = async (
     throw new Error('Employee not found');
   }
 
-  // Update task with assigned employee
-  const updatedTask = await prisma.task.update({
-    where: { id: taskId },
-    data: { assignedEmployeeId: employeeId },
-  });
+  // Execute database writes atomically
+  const updatedTask = await prisma.$transaction(async (tx) => {
+    // Update task with assigned employee
+    const ut = await tx.task.update({
+      where: { id: taskId },
+      data: { assignedEmployeeId: employeeId },
+    });
 
-  // Create task assignment record
-  await prisma.taskAssignment.create({
-    data: {
+    // Create task assignment record
+    await tx.taskAssignment.create({
+      data: {
+        taskId,
+        employeeId,
+      },
+    });
+
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Task assigned to ${employee.firstName} ${employee.lastName}`,
+      assignedBy,
+      'Task',
       taskId,
-      employeeId,
-    },
-  });
+      tx
+    );
 
-  // Create audit log
-  await createAuditLog(
-    `Task assigned to ${employee.firstName} ${employee.lastName}`,
-    assignedBy,
-    'Task',
-    taskId
-  );
+    return ut;
+  });
 
   return updatedTask;
 };
@@ -171,23 +177,28 @@ export const unassignTask = async (
     throw new Error('Task not found');
   }
 
-  const updated = await prisma.task.update({
-    where: { id: taskId },
-    data: { assignedEmployeeId: null },
-  });
+  const updated = await prisma.$transaction(async (tx) => {
+    const ut = await tx.task.update({
+      where: { id: taskId },
+      data: { assignedEmployeeId: null },
+    });
 
-  // Remove assignment records
-  await prisma.taskAssignment.deleteMany({
-    where: { taskId },
-  });
+    // Remove assignment records
+    await tx.taskAssignment.deleteMany({
+      where: { taskId },
+    });
 
-  // Create audit log
-  await createAuditLog(
-    `Task unassigned from ${task.assignedEmployee?.firstName}`,
-    unassignedBy,
-    'Task',
-    taskId
-  );
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Task unassigned from ${task.assignedEmployee?.firstName}`,
+      unassignedBy,
+      'Task',
+      taskId,
+      tx
+    );
+
+    return ut;
+  });
 
   return updated;
 };

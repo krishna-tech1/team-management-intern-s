@@ -2,6 +2,8 @@ import prisma from '../../config/prisma';
 import { calculateDistance, formatLocationData } from '../../utils/gpsUtils';
 import { validateCheckIn, validateCheckOut } from '../../utils/validationUtils';
 import { createAuditLog } from '../auditlogs/auditlog.service';
+import { geocodingService } from '../../services/geocoding/geocoding.service';
+import { getStartOfBusinessDay, getEndOfBusinessDay } from '../../utils/date.utils';
 
 const CHECKOUT_RADIUS_METERS = 200; // 200 meter radius for checkout validation
 
@@ -39,17 +41,15 @@ export const checkIn = async (
   }
 
   // Check if already checked in today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = getStartOfBusinessDay();
+  const tomorrow = getEndOfBusinessDay();
 
   const existingAttendance = await prisma.attendance.findFirst({
     where: {
       employeeId: employee.id,
       date: {
         gte: today,
-        lt: tomorrow,
+        lte: tomorrow,
       },
     },
   });
@@ -58,46 +58,61 @@ export const checkIn = async (
     throw new Error('Already checked in today');
   }
 
-  // Create attendance record
+  // Call geocoding service
+  const geoResult = await geocodingService.reverseGeocode(data.latitude, data.longitude);
+
+  // Create attendance record & GPS tracking atomically
   const now = new Date();
-  const attendance = await prisma.attendance.create({
-    data: {
-      employeeId: employee.id,
-      checkInTime: now,
-      checkInLatitude: data.latitude,
-      checkInLongitude: data.longitude,
-      checkInAddress: data.address,
-      locationAccuracy: data.accuracy,
-      status: 'PRESENT',
-      date: today,
-      selfieUrl: data.selfieUrl,
-    },
-  });
+  const attendance = await prisma.$transaction(async (tx) => {
+    const att = await tx.attendance.create({
+      data: {
+        employeeId: employee.id,
+        checkInTime: now,
+        checkInLatitude: data.latitude,
+        checkInLongitude: data.longitude,
+        checkInAddress: geoResult.formattedAddress,
+        checkInCity: geoResult.city,
+        checkInState: geoResult.state,
+        checkInCountry: geoResult.country,
+        checkInPostalCode: geoResult.postalCode,
+        locationAccuracy: data.accuracy,
+        status: 'PRESENT',
+        date: today,
+        selfieUrl: data.selfieUrl,
+      },
+    });
 
-  // Record GPS tracking
-  await prisma.gPSTracking.create({
-    data: {
-      employeeId: employee.id,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      address: data.address,
-      accuracy: data.accuracy,
-      eventType: 'CHECK_IN',
-      eventId: attendance.id,
-    },
-  });
+    await tx.gPSTracking.create({
+      data: {
+        employeeId: employee.id,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: geoResult.formattedAddress,
+        city: geoResult.city,
+        state: geoResult.state,
+        country: geoResult.country,
+        postalCode: geoResult.postalCode,
+        accuracy: data.accuracy,
+        eventType: 'CHECK_IN',
+        eventId: att.id,
+      },
+    });
 
-  // Create audit log
-  await createAuditLog(
-    `Employee checked in at ${data.address || `${data.latitude}, ${data.longitude}`}`,
-    `employee:${employee.id}`,
-    'Attendance',
-    attendance.id
-  );
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Employee checked in at ${geoResult.formattedAddress}`,
+      `employee:${employee.id}`,
+      'Attendance',
+      att.id,
+      tx
+    );
+
+    return att;
+  });
 
   return {
     ...attendance,
-    locationData: formatLocationData(data.latitude, data.longitude, data.address, data.accuracy),
+    locationData: formatLocationData(data.latitude, data.longitude, geoResult.formattedAddress, data.accuracy),
   };
 };
 
@@ -124,17 +139,15 @@ export const checkOut = async (
   }
 
   // Get today's attendance
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = getStartOfBusinessDay();
+  const tomorrow = getEndOfBusinessDay();
 
   const existing = await prisma.attendance.findFirst({
     where: {
       employeeId: employee.id,
       date: {
         gte: today,
-        lt: tomorrow,
+        lte: tomorrow,
       },
     },
   });
@@ -183,46 +196,61 @@ export const checkOut = async (
       )
     : 0;
 
-  // Update attendance record
-  const updated = await prisma.attendance.update({
-    where: { id: existing.id },
-    data: {
-      checkOutTime: now,
-      checkOutLatitude: data.latitude,
-      checkOutLongitude: data.longitude,
-      checkOutAddress: data.address,
-      workingHours: workingHours,
-      remarks: `Working hours: ${workingHours}h`,
-      selfieUrl: data.selfieUrl,
-    },
-  });
+  // Resolve geocoding
+  const geoResult = await geocodingService.reverseGeocode(data.latitude, data.longitude);
 
-  // Record GPS tracking
-  await prisma.gPSTracking.create({
-    data: {
-      employeeId: employee.id,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      address: data.address,
-      accuracy: data.accuracy,
-      eventType: 'CHECK_OUT',
-      eventId: updated.id,
-    },
-  });
+  // Update attendance record and record GPS tracking atomically
+  const updated = await prisma.$transaction(async (tx) => {
+    const att = await tx.attendance.update({
+      where: { id: existing.id },
+      data: {
+        checkOutTime: now,
+        checkOutLatitude: data.latitude,
+        checkOutLongitude: data.longitude,
+        checkOutAddress: geoResult.formattedAddress,
+        checkOutCity: geoResult.city,
+        checkOutState: geoResult.state,
+        checkOutCountry: geoResult.country,
+        checkOutPostalCode: geoResult.postalCode,
+        workingHours: workingHours,
+        remarks: `Working hours: ${workingHours}h`,
+        selfieUrl: data.selfieUrl,
+      },
+    });
 
-  // Create audit log
-  await createAuditLog(
-    `Employee checked out at ${data.address || `${data.latitude}, ${data.longitude}`}. Working hours: ${workingHours}h`,
-    `employee:${employee.id}`,
-    'Attendance',
-    updated.id
-  );
+    await tx.gPSTracking.create({
+      data: {
+        employeeId: employee.id,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: geoResult.formattedAddress,
+        city: geoResult.city,
+        state: geoResult.state,
+        country: geoResult.country,
+        postalCode: geoResult.postalCode,
+        accuracy: data.accuracy,
+        eventType: 'CHECK_OUT',
+        eventId: att.id,
+      },
+    });
+
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Employee checked out at ${geoResult.formattedAddress}. Working hours: ${workingHours}h`,
+      `employee:${employee.id}`,
+      'Attendance',
+      att.id,
+      tx
+    );
+
+    return att;
+  });
 
   return {
     ...updated,
     workingHours,
     distance,
-    locationData: formatLocationData(data.latitude, data.longitude, data.address, data.accuracy),
+    locationData: formatLocationData(data.latitude, data.longitude, geoResult.formattedAddress, data.accuracy),
   };
 };
 
@@ -296,16 +324,13 @@ export const getAttendanceSummary = async (
 
   if (period === 'WEEK') {
     dateFrom.setDate(now.getDate() - 7);
+    dateFrom = getStartOfBusinessDay(dateFrom);
   } else {
-    dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+    dateFrom = getStartOfBusinessDay(new Date(now.getFullYear(), now.getMonth(), 1));
   }
 
-  dateFrom.setHours(0, 0, 0, 0);
-
   const todayEnd = () => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    return today;
+    return getEndOfBusinessDay();
   };
 
   const records = await prisma.attendance.findMany({

@@ -8,6 +8,7 @@ interface SessionUser {
   avatar: string | null
   token?: string
   dbRole?: string
+  mustChangePassword?: boolean
 }
 
 interface AuthContextValue {
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       avatar: response.user?.avatar || response.avatar || null,
       token: response.token,
       dbRole: rawRole,
+      mustChangePassword: response.user?.mustChangePassword || response.mustChangePassword || false,
     }
     
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sessionUser))

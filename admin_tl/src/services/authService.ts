@@ -9,5 +9,8 @@ export const authService = {
   },
   getCurrentUser: async () => {
     return apiClient.get('/auth/me');
+  },
+  changePassword: async (payload: { oldPassword: string; newPassword: string }) => {
+    return apiClient.post('/onboarding/password/change', payload);
   }
 };

@@ -9,6 +9,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute"
 import Login from "@/pages/Login"
 import CreateAccount from "@/pages/CreateAccount"
 import NotFound from "@/pages/NotFound"
+import ChangePassword from "@/pages/ChangePassword"
 
 // Admin pages
 import Dashboard from "@/pages/admin/Dashboard"
@@ -85,6 +86,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<CreateAccount />} />
+        <Route path="/change-password" element={<ChangePassword />} />
 
         {/* Admin routes — protected */}
         <Route path="/dashboard" element={<AdminLayout />}>

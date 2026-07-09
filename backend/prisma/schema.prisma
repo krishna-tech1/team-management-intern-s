@@ -85,6 +85,7 @@ model User {
   email    String   @unique
   password String
   role     UserRole
+  mustChangePassword Boolean @default(false)
 
   employee Employee?
   teamLead TeamLead?
@@ -258,6 +259,15 @@ model Attendance {
 
   checkInAddress  String?
   checkOutAddress String?
+
+  checkInCity        String?
+  checkInState       String?
+  checkInCountry     String?
+  checkInPostalCode  String?
+  checkOutCity       String?
+  checkOutState      String?
+  checkOutCountry    String?
+  checkOutPostalCode String?
 
   status         AttendanceStatus
   date           DateTime? // date of this attendance record
@@ -565,6 +575,11 @@ model GPSTracking {
   longitude Float
   address   String?
   accuracy  Float?
+
+  city       String?
+  state      String?
+  country    String?
+  postalCode String?
 
   eventType String // "CHECK_IN", "CHECK_OUT", "WORK_UPDATE", "DOCUMENT_UPLOAD", etc.
   eventId   Int? // ID of the related event (attendance ID, work update ID, etc.)

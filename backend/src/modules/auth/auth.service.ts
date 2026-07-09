@@ -42,6 +42,7 @@ export const login = async (email: string, password: string) => {
     id: user.id.toString(),
     role: user.role,
     email: user.email,
+    mustChangePassword: user.mustChangePassword,
   });
 
   const name = user.employee
@@ -58,6 +59,7 @@ export const login = async (email: string, password: string) => {
       email: user.email,
       name,
       role: user.role,
+      mustChangePassword: user.mustChangePassword,
     },
   };
 };

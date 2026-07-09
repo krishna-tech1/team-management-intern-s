@@ -1,4 +1,5 @@
 import prisma from '../../config/prisma';
+import { getStartOfBusinessDay, getEndOfBusinessDay } from '../../utils/date.utils';
 
 /**
  * Calculate and update leaderboard rankings
@@ -342,8 +343,8 @@ export const calculateTeamStrength = async (teamLeadId: number, month?: string) 
  * Update daily tracking values
  */
 export const updateDailyTracking = async (employeeId: number, trackingDate?: Date) => {
-  const date = trackingDate || new Date();
-  date.setHours(0, 0, 0, 0);
+  const date = getStartOfBusinessDay(trackingDate || new Date());
+  const tomorrow = getEndOfBusinessDay(date);
 
   // Count tasks completed today
   const tasksCompleted = await prisma.taskStatusHistory.count({
@@ -351,7 +352,7 @@ export const updateDailyTracking = async (employeeId: number, trackingDate?: Dat
       employeeId,
       changedAt: {
         gte: date,
-        lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
+        lte: tomorrow,
       },
       toStatus: 'COMPLETED',
     },
@@ -363,7 +364,7 @@ export const updateDailyTracking = async (employeeId: number, trackingDate?: Dat
       employeeId,
       createdAt: {
         gte: date,
-        lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
+        lte: tomorrow,
       },
     },
   });
@@ -374,7 +375,7 @@ export const updateDailyTracking = async (employeeId: number, trackingDate?: Dat
       employeeId,
       createdAt: {
         gte: date,
-        lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
+        lte: tomorrow,
       },
     },
   });
@@ -422,12 +423,12 @@ export const getDailyTracking = async (
 ) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  startDate.setHours(0, 0, 0, 0);
+  const startDateZoned = getStartOfBusinessDay(startDate);
 
   const trackings = await prisma.dailyTracking.findMany({
     where: {
       employeeId,
-      trackingDate: { gte: startDate },
+      trackingDate: { gte: startDateZoned },
     },
     orderBy: { trackingDate: 'desc' },
   });

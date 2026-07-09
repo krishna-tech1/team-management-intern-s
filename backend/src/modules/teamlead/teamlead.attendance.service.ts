@@ -1,5 +1,6 @@
 import prisma from '../../config/prisma';
 import { getTeamMemberIds } from './teamlead.helper';
+import { getStartOfBusinessDay } from '../../utils/date.utils';
 
 export const getTLAttendance = async (
   userId: number,
@@ -16,14 +17,14 @@ export const getTLAttendance = async (
   if (period === 'weekly') {
     fromDate = new Date(now);
     fromDate.setDate(now.getDate() - 7);
+    fromDate = getStartOfBusinessDay(fromDate);
   } else if (period === 'monthly') {
     fromDate = new Date(now);
     fromDate.setDate(1);
-    fromDate.setHours(0, 0, 0, 0);
+    fromDate = getStartOfBusinessDay(fromDate);
   } else {
     // daily — today
-    fromDate = new Date(now);
-    fromDate.setHours(0, 0, 0, 0);
+    fromDate = getStartOfBusinessDay(now);
   }
 
   const skip = (page - 1) * limit;

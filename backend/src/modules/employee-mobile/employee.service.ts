@@ -3,6 +3,8 @@ import { hashPassword } from '../../utils/password.utils';
 import { TaskStatus, AttendanceStatus } from '@prisma/client';
 import { createAuditLog } from '../auditlogs/auditlog.service';
 import { config } from '../../config/index';
+import { geocodingService } from '../../services/geocoding/geocoding.service';
+import { getStartOfBusinessDay, getEndOfBusinessDay, toBusinessTimezone, fromBusinessTimezone } from '../../utils/date.utils';
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3; // Earth radius in meters
@@ -66,15 +68,11 @@ async function calculatePerformanceScore(employeeId: number): Promise<number> {
 
 /** Today's date at midnight (local) in UTC for DB queries */
 function todayStart() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return getStartOfBusinessDay();
 }
 
 function todayEnd() {
-  const d = new Date();
-  d.setHours(23, 59, 59, 999);
-  return d;
+  return getEndOfBusinessDay();
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
@@ -571,10 +569,8 @@ async function buildDailyProductivity(employeeId: number, days: number) {
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const start = new Date(d);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(d);
-    end.setHours(23, 59, 59, 999);
+    const start = getStartOfBusinessDay(d);
+    const end = getEndOfBusinessDay(d);
 
     const count = await prisma.task.count({
       where: {
@@ -586,7 +582,7 @@ async function buildDailyProductivity(employeeId: number, days: number) {
     });
 
     result.push({
-      date: start.toISOString().slice(0, 10),
+      date: toBusinessTimezone(start).toISOString().slice(0, 10),
       completedTasks: count,
     });
   }
@@ -734,21 +730,59 @@ export const checkIn = async (
 
   const now = new Date();
 
-  // Determine status: LATE if after 9:30 AM
-  const cutoff = new Date();
-  cutoff.setHours(9, 30, 0, 0);
+  // Determine status: LATE if after 9:30 AM (IST)
+  const zonedNow = toBusinessTimezone(new Date());
+  const cutoffZoned = new Date(zonedNow);
+  cutoffZoned.setHours(9, 30, 0, 0);
+  const cutoff = fromBusinessTimezone(cutoffZoned);
   const status: AttendanceStatus = now > cutoff ? 'LATE' : 'PRESENT';
 
-  const attendance = await prisma.attendance.create({
-    data: {
-      employeeId: employee.id,
-      date: todayStart(),
-      checkInTime: now,
-      checkInLatitude: latitude,
-      checkInLongitude: longitude,
-      locationAccuracy: accuracy || null,
-      status,
-    },
+  const geoResult = await geocodingService.reverseGeocode(latitude, longitude);
+
+  const attendance = await prisma.$transaction(async (tx) => {
+    const att = await tx.attendance.create({
+      data: {
+        employeeId: employee.id,
+        date: todayStart(),
+        checkInTime: now,
+        checkInLatitude: latitude,
+        checkInLongitude: longitude,
+        checkInAddress: geoResult.formattedAddress,
+        checkInCity: geoResult.city,
+        checkInState: geoResult.state,
+        checkInCountry: geoResult.country,
+        checkInPostalCode: geoResult.postalCode,
+        locationAccuracy: accuracy || null,
+        status,
+      },
+    });
+
+    await tx.gPSTracking.create({
+      data: {
+        employeeId: employee.id,
+        latitude,
+        longitude,
+        address: geoResult.formattedAddress,
+        city: geoResult.city,
+        state: geoResult.state,
+        country: geoResult.country,
+        postalCode: geoResult.postalCode,
+        accuracy: accuracy || null,
+        eventType: 'CHECK_IN',
+        eventId: att.id,
+      },
+    });
+
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Employee checked in via mobile at ${geoResult.formattedAddress}`,
+      `employee:${employee.id}`,
+      'Attendance',
+      att.id,
+      tx
+    );
+
+    return att;
   });
 
   return attendance;
@@ -801,15 +835,51 @@ export const checkOut = async (
       )
     : 0;
 
-  const updated = await prisma.attendance.update({
-    where: { id: existing.id },
-    data: {
-      checkOutTime: now,
-      checkOutLatitude: latitude,
-      checkOutLongitude: longitude,
-      workingHours: workingHours,
-      remarks: `Working hours: ${workingHours}h`,
-    },
+  const geoResult = await geocodingService.reverseGeocode(latitude, longitude);
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const att = await tx.attendance.update({
+      where: { id: existing.id },
+      data: {
+        checkOutTime: now,
+        checkOutLatitude: latitude,
+        checkOutLongitude: longitude,
+        checkOutAddress: geoResult.formattedAddress,
+        checkOutCity: geoResult.city,
+        checkOutState: geoResult.state,
+        checkOutCountry: geoResult.country,
+        checkOutPostalCode: geoResult.postalCode,
+        workingHours: workingHours,
+        remarks: `Working hours: ${workingHours}h`,
+      },
+    });
+
+    await tx.gPSTracking.create({
+      data: {
+        employeeId: employee.id,
+        latitude,
+        longitude,
+        address: geoResult.formattedAddress,
+        city: geoResult.city,
+        state: geoResult.state,
+        country: geoResult.country,
+        postalCode: geoResult.postalCode,
+        accuracy: null,
+        eventType: 'CHECK_OUT',
+        eventId: att.id,
+      },
+    });
+
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Employee checked out via mobile at ${geoResult.formattedAddress}. Working hours: ${workingHours}h`,
+      `employee:${employee.id}`,
+      'Attendance',
+      att.id,
+      tx
+    );
+
+    return att;
   });
 
   return { ...updated, workingHours };
@@ -829,9 +899,9 @@ export const getAttendanceHistory = async (
   } else if (filter === 'weekly') {
     dateFrom = new Date();
     dateFrom.setDate(now.getDate() - 7);
-    dateFrom.setHours(0, 0, 0, 0);
+    dateFrom = getStartOfBusinessDay(dateFrom);
   } else {
-    dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+    dateFrom = getStartOfBusinessDay(new Date(now.getFullYear(), now.getMonth(), 1));
   }
 
   const records = await prisma.attendance.findMany({

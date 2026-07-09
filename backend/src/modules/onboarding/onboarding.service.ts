@@ -1,10 +1,10 @@
 import prisma from '../../config/prisma';
-import { hashPassword, generateDefaultPasswordFromDOB } from '../../utils/passwordUtils';
+import { hashPassword, generateRandomPassword } from '../../utils/password.utils';
 import { createAuditLog } from '../auditlogs/auditlog.service';
 
 /**
  * Onboard a new employee
- * Generates default password from DOB if not provided
+ * Generates secure random password if not provided
  * Creates both Employee and User records
  */
 export const onboardEmployee = async (data: {
@@ -28,57 +28,64 @@ export const onboardEmployee = async (data: {
     throw new Error(`Email ${data.email} is already in use`);
   }
 
-  // Generate default password from DOB
-  const generatedPassword = generateDefaultPasswordFromDOB(data.dateOfBirth);
+  // Generate secure random password
+  const generatedPassword = generateRandomPassword(12);
   const passwordToUse = data.password || generatedPassword;
   const hashedPassword = await hashPassword(passwordToUse);
 
-  // Create user account
-  const user = await prisma.user.create({
-    data: {
-      email: data.email,
-      password: hashedPassword,
-      role: 'EMPLOYEE',
-      isActive: true,
-    },
-  });
+  // Execute database writes atomically
+  const { user, employee } = await prisma.$transaction(async (tx) => {
+    // Create user account
+    const usr = await tx.user.create({
+      data: {
+        email: data.email,
+        password: hashedPassword,
+        role: 'EMPLOYEE',
+        isActive: true,
+        mustChangePassword: true,
+      },
+    });
 
-  // Create employee record
-  const employee = await prisma.employee.create({
-    data: {
-      employeeCode: data.employeeCode,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      phone: data.phone,
-      department: data.department,
-      designation: data.designation,
-      joiningDate: data.joiningDate,
-      dateOfBirth: data.dateOfBirth,
-      userId: user.id,
-      status: 'ACTIVE',
-      passwordGenerationDate: new Date(),
-    },
-  });
+    // Create employee record
+    const emp = await tx.employee.create({
+      data: {
+        employeeCode: data.employeeCode,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        department: data.department,
+        designation: data.designation,
+        joiningDate: data.joiningDate,
+        dateOfBirth: data.dateOfBirth,
+        userId: usr.id,
+        status: 'ACTIVE',
+        passwordGenerationDate: new Date(),
+      },
+    });
 
-  // Record password generation
-  await prisma.passwordReset.create({
-    data: {
-      employeeId: employee.id,
-      oldPassword: hashedPassword, // first time, so old = new
-      newPassword: hashedPassword,
-      resetBy: 'SYSTEM',
-      reason: 'ONBOARDING',
-    },
-  });
+    // Record password generation
+    await tx.passwordReset.create({
+      data: {
+        employeeId: emp.id,
+        oldPassword: hashedPassword, // first time, so old = new
+        newPassword: hashedPassword,
+        resetBy: 'SYSTEM',
+        reason: 'ONBOARDING',
+      },
+    });
 
-  // Create audit log
-  await createAuditLog(
-    `Employee onboarded: ${employee.firstName} ${employee.lastName}`,
-    'admin',
-    'Employee',
-    employee.id
-  );
+    // Create audit log inside transaction
+    await createAuditLog(
+      `Employee onboarded: ${emp.firstName} ${emp.lastName}`,
+      'admin',
+      'Employee',
+      emp.id,
+      tx
+    );
+
+    return { user: usr, employee: emp };
+  });
 
   return {
     employee: {
@@ -102,7 +109,7 @@ export const onboardEmployee = async (data: {
       // Only return password in onboarding response, then never again
       tempPassword: generatedPassword,
       passwordExpiresDays: 30, // employees must change password within 30 days
-      note: 'Password generated from date of birth (DDMMYY format). Please change on first login.',
+      note: 'A secure temporary password has been generated. Please change on first login.',
     },
   };
 };
@@ -294,11 +301,20 @@ export const resendOnboardingEmail = async (employeeId: number) => {
     throw new Error('Employee not found');
   }
 
-  if (!employee.dateOfBirth) {
-    throw new Error('Employee does not have date of birth on file');
-  }
+  // Generate a new secure random password
+  const tempPassword = generateRandomPassword(12);
+  const hashedPassword = await hashPassword(tempPassword);
 
-  const tempPassword = generateDefaultPasswordFromDOB(employee.dateOfBirth);
+  // Update user's password hash and mustChangePassword flag
+  if (employee.userId) {
+    await prisma.user.update({
+      where: { id: employee.userId },
+      data: {
+        password: hashedPassword,
+        mustChangePassword: true,
+      },
+    });
+  }
 
   return await sendOnboardingEmail(employeeId, tempPassword);
 };

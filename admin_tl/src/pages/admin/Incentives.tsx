@@ -71,7 +71,7 @@ export default function AdminIncentives() {
     try {
       const emps = await employeeService.getEmployees()
       
-      let performanceMap: Record<number, number> = {}
+      const performanceMap: Record<number, number> = {}
       try {
         const stats = await analyticsService.getAnalyticsRows()
         if (stats && stats.employeePerformance) {

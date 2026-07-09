@@ -32,12 +32,14 @@ export default function TaskAssigning() {
         const unassigned = allTasks.filter((t: any) => !t.employee)
         setTasksList(unassigned)
 
-        // Map employees to workload load indicator
+        // Map employees to workload load indicator based on real pending tasks
         const mappedEmps = emps.map((e: any) => {
-          const load = Math.min(100, Math.max(10, Math.floor(Math.random() * 40 + 20))) // mock variation
-          let color = '#2bb673'
-          if (load > 80) color = '#e2566b'
-          else if (load > 40) color = '#e0941a'
+          const pending = e.pendingTasks || 0;
+          // Estimate workload: 5 pending tasks = 100% capacity load
+          const load = Math.min(100, Math.round((pending / 5) * 100));
+          let color = '#2bb673';
+          if (load > 80) color = '#e2566b';
+          else if (load > 40) color = '#e0941a';
 
           return {
             id: e.id,
@@ -45,7 +47,7 @@ export default function TaskAssigning() {
             avatar: e.name.split(' ').map((s: any) => s[0]).join('').slice(0, 2).toUpperCase(),
             load,
             color
-          }
+          };
         })
         setAvailList(mappedEmps)
         setLoading(false)

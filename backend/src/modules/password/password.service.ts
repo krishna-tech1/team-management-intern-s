@@ -1,5 +1,5 @@
 import prisma from '../../config/prisma';
-import { hashPassword, comparePasswords, validatePasswordStrength } from '../../utils/passwordUtils';
+import { hashPassword, comparePasswords, validatePasswordStrength } from '../../utils/password.utils';
 import { createAuditLog } from '../auditlogs/auditlog.service';
 
 /**
@@ -35,7 +35,10 @@ export const resetEmployeePassword = async (
   // Update user password
   await prisma.user.update({
     where: { id: employee.user.id },
-    data: { password: hashedPassword },
+    data: { 
+      password: hashedPassword,
+      mustChangePassword: true,
+    },
   });
 
   // Record password reset
@@ -112,7 +115,10 @@ export const changeOwnPassword = async (
   // Update password
   await prisma.user.update({
     where: { id: userId },
-    data: { password: hashedPassword },
+    data: { 
+      password: hashedPassword,
+      mustChangePassword: false,
+    },
   });
 
   // Find associated employee
@@ -206,7 +212,10 @@ export const applyPasswordResetToken = async (
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: { 
+        password: hashedPassword,
+        mustChangePassword: false,
+      },
     });
 
     // Find associated employee
@@ -274,13 +283,17 @@ export const forcePasswordReset = async (employeeId: number) => {
     throw new Error('Employee not found');
   }
 
-  // Add a flag or metadata indicating password reset is required
-  // This would be checked on login and require password change
+  // Actually update the user record to enforce password change on next login
+  await prisma.user.update({
+    where: { id: employee.user.id },
+    data: { mustChangePassword: true },
+  });
+
   await createAuditLog(
     'Password reset forced for next login',
     'admin',
     'User',
-    employee.userId || 0
+    employee.user.id
   );
 
   return {

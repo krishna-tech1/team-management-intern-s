@@ -156,7 +156,7 @@ export default function Reports() {
       };
     }
 
-    let points = [...trend].slice(-10); // Display up to 10 points
+    const points = [...trend].slice(-10); // Display up to 10 points
     if (points.length === 1) {
       const [year, month] = points[0].month.split('-');
       const prevDate = new Date(Number(year), Number(month) - 2, 1);

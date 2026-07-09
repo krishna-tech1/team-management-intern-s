@@ -5,9 +5,11 @@ export const createAuditLog = async (
   action: string,
   performedBy: string,
   entity: string,
-  entityId?: number
+  entityId?: number,
+  tx?: any
 ) => {
-  return prisma.auditLog.create({
+  const client = tx || prisma;
+  return client.auditLog.create({
     data: {
       module: entity, // backward compatibility with original schema's 'module'
       action,

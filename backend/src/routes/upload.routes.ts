@@ -4,6 +4,7 @@ import { singleUpload } from '../middleware/upload.middleware';
 import { uploadImage, deleteImage } from '../services/cloudinary.service';
 import { successResponse, errorResponse } from '../utils/response.utils';
 import path from 'path';
+import prisma from '../config/prisma';
 
 const router = Router();
 
@@ -53,6 +54,24 @@ router.post(
         resourceType,
       });
 
+      // Save ownership metadata immediately in Document database model
+      const employeeId = (req as any).employee?.id || null;
+      const docType = type.includes('mca') ? 'MCA' : (type.includes('gst') ? 'GST' : 'OTHER');
+
+      await prisma.document.create({
+        data: {
+          fileName: req.file.originalname,
+          filePath: uploadResult.secure_url,
+          fileUrl: uploadResult.secure_url,
+          publicId: uploadResult.public_id,
+          documentType: docType,
+          employeeId: employeeId,
+          uploadedById: employeeId,
+          uploadedBy: req.user?.email || null,
+          fileSize: req.file.size,
+        },
+      });
+
       return successResponse(
         res,
         {
@@ -80,8 +99,82 @@ router.delete('/upload', authenticateToken, async (req: AuthRequest, res: Respon
       return errorResponse(res, 'publicId is required in body', 400);
     }
 
+    const userRole = req.user?.role;
+    const userEmail = req.user?.email;
+    const userIdVal = parseInt(req.user?.id || '0');
+
+    // 1. If SUPER_ADMIN, allow deletion unconditionally
+    if (userRole !== 'SUPER_ADMIN') {
+      // 2. Fetch the document using publicId
+      const doc = await prisma.document.findFirst({
+        where: { publicId },
+      });
+
+      let authorized = false;
+
+      if (doc) {
+        // If it's a Document record
+        if (userRole === 'EMPLOYEE') {
+          // Employee can delete if they uploaded it
+          const employee = await prisma.employee.findFirst({
+            where: { userId: userIdVal, isDeleted: false },
+          });
+          if (employee && doc.employeeId === employee.id) {
+            authorized = true;
+          }
+        } else if (userRole === 'TEAM_LEAD') {
+          // Team Lead can delete if they uploaded it, OR if they are the Team Lead of the owner
+          const teamLead = await prisma.teamLead.findFirst({
+            where: { userId: userIdVal },
+          });
+          if (teamLead) {
+            if (doc.uploadedBy === userEmail) {
+              authorized = true;
+            } else if (doc.employeeId) {
+              const membership = await prisma.teamLeadEmployee.findFirst({
+                where: {
+                  teamLeadId: teamLead.id,
+                  employeeId: doc.employeeId,
+                },
+              });
+              if (membership) {
+                authorized = true;
+              }
+            }
+          }
+        }
+      } else {
+        // If no Document record was found, it might be a profile photo stored on Employee or TeamLead.
+        // Let's check if this publicId is the profile photo of the logged in user:
+        if (userRole === 'EMPLOYEE') {
+          const employee = await prisma.employee.findFirst({
+            where: { userId: userIdVal, profilePhotoPublicId: publicId, isDeleted: false },
+          });
+          if (employee) {
+            authorized = true;
+          }
+        } else if (userRole === 'TEAM_LEAD') {
+          const teamLead = await prisma.teamLead.findFirst({
+            where: { userId: userIdVal, profilePhotoPublicId: publicId },
+          });
+          if (teamLead) {
+            authorized = true;
+          }
+        }
+      }
+
+      if (!authorized) {
+        return errorResponse(res, 'Access denied. You do not own this resource.', 403);
+      }
+    }
+
     const resourceType = isImage ? 'image' : 'auto';
     await deleteImage(publicId, { resourceType });
+
+    // Delete the document record from DB if it exists
+    await prisma.document.deleteMany({
+      where: { publicId },
+    });
 
     return successResponse(res, null, 'File deleted from Cloudinary successfully');
   } catch (err: any) {

@@ -146,35 +146,39 @@ export const createClient = async (
     }
   }
 
-  const client = await prisma.client.create({
-    data: {
-      clientCode,
-      companyName: data.companyName,
-      contactPerson: data.contactPerson,
-      email: data.email,
-      phone: data.phone,
-      gstNumber: data.gstNumber,
-      panNumber: data.panNumber,
-      address: data.address,
-      serviceType: data.serviceType,
-      status: finalStatus,
-      assignedEmployeeId: data.assignedEmployeeId,
-    },
-  });
-
-  // If employee is assigned, record in Allocation history
-  if (data.assignedEmployeeId) {
-    await prisma.allocation.create({
+  const client = await prisma.$transaction(async (tx) => {
+    const cl = await tx.client.create({
       data: {
-        clientId: client.id,
-        employeeId: data.assignedEmployeeId,
-        allocatedBy: performedBy,
+        clientCode,
+        companyName: data.companyName,
+        contactPerson: data.contactPerson,
+        email: data.email,
+        phone: data.phone,
+        gstNumber: data.gstNumber,
+        panNumber: data.panNumber,
+        address: data.address,
+        serviceType: data.serviceType,
+        status: finalStatus,
+        assignedEmployeeId: data.assignedEmployeeId,
       },
     });
-  }
 
-  // Log to AuditLog
-  await createAuditLog('Client created', performedBy, 'Client', client.id);
+    // If employee is assigned, record in Allocation history
+    if (data.assignedEmployeeId) {
+      await tx.allocation.create({
+        data: {
+          clientId: cl.id,
+          employeeId: data.assignedEmployeeId,
+          allocatedBy: performedBy,
+        },
+      });
+    }
+
+    // Log to AuditLog
+    await createAuditLog('Client created', performedBy, 'Client', cl.id, tx);
+
+    return cl;
+  });
 
   return client;
 };
@@ -240,37 +244,41 @@ export const updateClient = async (
     data.assignedEmployeeId !== undefined &&
     data.assignedEmployeeId !== client.assignedEmployeeId;
 
-  const updatedClient = await prisma.client.update({
-    where: { id },
-    data: {
-      ...(data.companyName && { companyName: data.companyName }),
-      ...(data.contactPerson && { contactPerson: data.contactPerson }),
-      ...(data.email && { email: data.email }),
-      ...(data.phone !== undefined && { phone: data.phone }),
-      ...(data.gstNumber !== undefined && { gstNumber: data.gstNumber }),
-      ...(data.panNumber !== undefined && { panNumber: data.panNumber }),
-      ...(data.address !== undefined && { address: data.address }),
-      ...(data.serviceType !== undefined && { serviceType: data.serviceType }),
-      ...(finalStatus && { status: finalStatus }),
-      ...(data.assignedEmployeeId !== undefined && {
-        assignedEmployeeId: data.assignedEmployeeId,
-      }),
-    },
-  });
-
-  // If reassigned, create an Allocation record
-  if (employeeChanged && data.assignedEmployeeId) {
-    await prisma.allocation.create({
+  const updatedClient = await prisma.$transaction(async (tx) => {
+    const cl = await tx.client.update({
+      where: { id },
       data: {
-        clientId: id,
-        employeeId: data.assignedEmployeeId,
-        allocatedBy: performedBy,
+        ...(data.companyName && { companyName: data.companyName }),
+        ...(data.contactPerson && { contactPerson: data.contactPerson }),
+        ...(data.email && { email: data.email }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+        ...(data.gstNumber !== undefined && { gstNumber: data.gstNumber }),
+        ...(data.panNumber !== undefined && { panNumber: data.panNumber }),
+        ...(data.address !== undefined && { address: data.address }),
+        ...(data.serviceType !== undefined && { serviceType: data.serviceType }),
+        ...(finalStatus && { status: finalStatus }),
+        ...(data.assignedEmployeeId !== undefined && {
+          assignedEmployeeId: data.assignedEmployeeId,
+        }),
       },
     });
-  }
 
-  // Log to AuditLog
-  await createAuditLog('Client updated', performedBy, 'Client', id);
+    // If reassigned, create an Allocation record
+    if (employeeChanged && data.assignedEmployeeId) {
+      await tx.allocation.create({
+        data: {
+          clientId: id,
+          employeeId: data.assignedEmployeeId,
+          allocatedBy: performedBy,
+        },
+      });
+    }
+
+    // Log to AuditLog
+    await createAuditLog('Client updated', performedBy, 'Client', id, tx);
+
+    return cl;
+  });
 
   return updatedClient;
 };
@@ -282,13 +290,15 @@ export const deleteClient = async (id: number, performedBy: string) => {
   });
   if (!client) throw new Error('Client not found');
 
-  await prisma.client.update({
-    where: { id },
-    data: { isDeleted: true, status: 'INACTIVE' },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.client.update({
+      where: { id },
+      data: { isDeleted: true, status: 'INACTIVE' },
+    });
 
-  // Log to AuditLog
-  await createAuditLog('Client deleted', performedBy, 'Client', id);
+    // Log to AuditLog
+    await createAuditLog('Client deleted', performedBy, 'Client', id, tx);
+  });
 
   return { message: 'Client deleted successfully' };
 };

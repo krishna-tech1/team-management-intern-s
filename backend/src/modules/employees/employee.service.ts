@@ -122,6 +122,7 @@ export const createEmployee = async (data: {
       email: data.email,
       password: hashed,
       role: (data.role as any) || 'EMPLOYEE',
+      mustChangePassword: true,
       employee: {
         create: {
           employeeCode,
@@ -181,18 +182,20 @@ export const deleteEmployee = async (id: number) => {
   });
   if (!employee) throw new Error('Employee not found');
 
-  await prisma.employee.update({
-    where: { id },
-    data: { isDeleted: true, status: 'INACTIVE' },
-  });
-
-  // Also soft delete linked user
-  if (employee.userId) {
-    await prisma.user.update({
-      where: { id: employee.userId },
-      data: { isDeleted: true },
+  await prisma.$transaction(async (tx) => {
+    await tx.employee.update({
+      where: { id },
+      data: { isDeleted: true, status: 'INACTIVE' },
     });
-  }
+
+    // Also soft delete linked user
+    if (employee.userId) {
+      await tx.user.update({
+        where: { id: employee.userId },
+        data: { isDeleted: true },
+      });
+    }
+  });
 
   return { message: 'Employee deactivated successfully' };
 };

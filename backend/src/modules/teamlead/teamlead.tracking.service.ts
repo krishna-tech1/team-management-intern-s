@@ -1,14 +1,13 @@
 import prisma from '../../config/prisma';
 import { getTeamMemberIds } from './teamlead.helper';
+import { getStartOfBusinessDay, getEndOfBusinessDay } from '../../utils/date.utils';
 
 export const getTLTracking = async (userId: number) => {
   const memberIds = await getTeamMemberIds(userId);
   if (memberIds.length === 0) return [];
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = getStartOfBusinessDay();
+  const tomorrow = getEndOfBusinessDay();
 
   const employees = await prisma.employee.findMany({
     where: { id: { in: memberIds }, isDeleted: false },
@@ -20,7 +19,7 @@ export const getTLTracking = async (userId: number) => {
       department: true,
       status: true,
       attendances: {
-        where: { createdAt: { gte: today, lt: tomorrow } },
+        where: { createdAt: { gte: today, lte: tomorrow } },
         orderBy: { createdAt: 'desc' },
         take: 1,
       },
@@ -33,7 +32,7 @@ export const getTLTracking = async (userId: number) => {
   });
 
   // Attendance percentage for each employee (last 30 days)
-  const thirtyDaysAgo = new Date();
+  const thirtyDaysAgo = getStartOfBusinessDay();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   return Promise.all(
