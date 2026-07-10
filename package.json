@@ -1,0 +1,12 @@
+{
+  "name": "team-management-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=backend",
+    "postinstall": "npm run postinstall --workspace=backend"
+  }
+}
